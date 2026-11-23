@@ -301,12 +301,26 @@
     }
   }
 
+  // Cached theme colors (zero getComputedStyle inside requestAnimationFrame)
+  const themeColors = {
+    canvasBg: "#0c0e13",
+    canvasGrid: "rgba(255, 255, 255, 0.045)",
+    textTertiary: "#6e7380",
+  };
+  function refreshThemeColors() {
+    const cs = getComputedStyle(document.documentElement);
+    themeColors.canvasBg = cs.getPropertyValue("--canvas-bg").trim() || "#0c0e13";
+    themeColors.canvasGrid = cs.getPropertyValue("--canvas-grid").trim() || "rgba(255,255,255,0.05)";
+    themeColors.textTertiary = cs.getPropertyValue("--text-tertiary").trim() || "#6e7380";
+  }
+
   // Theme management (Apple Dark Obsidian / Porcelain Light)
   function applyTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("bms-theme", theme);
     el.icoSun.classList.toggle("hidden", theme === "light");
     el.icoMoon.classList.toggle("hidden", theme !== "light");
+    refreshThemeColors();
   }
   applyTheme(localStorage.getItem("bms-theme") || "dark");
   el.btnTheme.addEventListener("click", () => {
@@ -345,12 +359,9 @@
     if (e.key === "Escape" && !el.helpModal.classList.contains("hidden")) closeHelp();
   });
 
-  function cssVar(name) {
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  }
-
-  // HiDPI Retina Canvas helper
-  function prepCanvas(canvas) {
+  // HiDPI Retina Canvas helper with cached dimensions (zero layout thrashing in rAF)
+  const canvasDims = new WeakMap();
+  function measureCanvas(canvas) {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     const w = Math.max(100, Math.floor(rect.width));
@@ -361,8 +372,19 @@
     }
     const ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { ctx, w, h };
+    const entry = { ctx, w, h };
+    canvasDims.set(canvas, entry);
+    return entry;
   }
+  function prepCanvas(canvas) {
+    return canvasDims.get(canvas) || measureCanvas(canvas);
+  }
+  function invalidateCanvasSizes() {
+    [el.eegCanvas, el.fftCanvas, el.ppgCanvas, el.labOrbCanvas, el.labCursorCanvas].forEach((c) => {
+      if (c) canvasDims.delete(c);
+    });
+  }
+  window.addEventListener("resize", invalidateCanvasSizes);
 
   async function api(url, method = "GET", body = null) {
     const opts = { method, headers: {} };
@@ -385,6 +407,7 @@
       document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
       tabBtn.classList.add("active");
       document.getElementById(`panel-${tabBtn.dataset.tab}`).classList.remove("hidden");
+      invalidateCanvasSizes();
     });
   });
 
@@ -705,11 +728,11 @@
   // --- Retina-Crisp Canvas Rendering ---
   function drawEEG() {
     const { ctx, w, h } = prepCanvas(el.eegCanvas);
-    ctx.fillStyle = cssVar("--canvas-bg");
+    ctx.fillStyle = themeColors.canvasBg;
     ctx.fillRect(0, 0, w, h);
 
     // Subtle vertical time grid (every 1s across 4s window)
-    ctx.strokeStyle = cssVar("--canvas-grid");
+    ctx.strokeStyle = themeColors.canvasGrid;
     ctx.lineWidth = 1;
     for (let g = 1; g < 8; g++) {
       const gx = (w / 8) * g;
@@ -724,7 +747,7 @@
       const midY = rowH * idx + rowH / 2;
 
       // Baseline hairline
-      ctx.strokeStyle = cssVar("--canvas-grid");
+      ctx.strokeStyle = themeColors.canvasGrid;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(0, midY);
@@ -755,7 +778,7 @@
 
   function drawFFT() {
     const { ctx, w, h } = prepCanvas(el.fftCanvas);
-    ctx.fillStyle = cssVar("--canvas-bg");
+    ctx.fillStyle = themeColors.canvasBg;
     ctx.fillRect(0, 0, w, h);
 
     const n = fftSpectrum.length;
@@ -780,7 +803,7 @@
       ctx.fill();
     }
 
-    ctx.fillStyle = cssVar("--text-tertiary");
+    ctx.fillStyle = themeColors.textTertiary;
     ctx.font = "500 10px -apple-system, BlinkMacSystemFont, Inter, sans-serif";
     [1, 8, 13, 30, 45].forEach((hz) => {
       const x = ((hz - 1) / n) * w;
@@ -790,7 +813,7 @@
 
   function drawPPG() {
     const { ctx, w, h } = prepCanvas(el.ppgCanvas);
-    ctx.fillStyle = cssVar("--canvas-bg");
+    ctx.fillStyle = themeColors.canvasBg;
     ctx.fillRect(0, 0, w, h);
 
     const maxAbs = Math.max(500, ...ppgBuf.map((v) => Math.abs(v)));
@@ -820,7 +843,7 @@
 
   function drawLabOrb() {
     const { ctx, w, h } = prepCanvas(el.labOrbCanvas);
-    ctx.fillStyle = cssVar("--canvas-bg");
+    ctx.fillStyle = themeColors.canvasBg;
     ctx.fillRect(0, 0, w, h);
 
     const threshNorm = 1 - Math.max(0.1, Math.min(0.9, (labState.focus_threshold || 50) / 100));
@@ -875,11 +898,11 @@
 
   function drawLabCursor() {
     const { ctx, w, h } = prepCanvas(el.labCursorCanvas);
-    ctx.fillStyle = cssVar("--canvas-bg");
+    ctx.fillStyle = themeColors.canvasBg;
     ctx.fillRect(0, 0, w, h);
 
     // Subtle grid
-    ctx.strokeStyle = cssVar("--canvas-grid");
+    ctx.strokeStyle = themeColors.canvasGrid;
     ctx.lineWidth = 1;
     for (let i = 1; i < 6; i++) {
       ctx.beginPath();

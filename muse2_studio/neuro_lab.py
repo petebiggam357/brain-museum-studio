@@ -57,6 +57,7 @@ class NeuroLabEngine:
         self._has_ydotool = shutil.which("ydotool") is not None
         self._has_wtype = shutil.which("wtype") is not None
         self._has_xdotool = shutil.which("xdotool") is not None
+        self._move_proc: Optional[subprocess.Popen[Any]] = None
 
     def start_calibration(self, duration_sec: float = 10.0) -> Dict[str, Any]:
         self.calibrating = True
@@ -190,7 +191,7 @@ class NeuroLabEngine:
             if self._has_ydotool:
                 btn = "1" if button == "left" else "2"
                 subprocess.Popen(
-                    ["ydotool", "click", btn],
+                    ["ydotool", "click", "--delay", "0", btn],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
@@ -239,15 +240,18 @@ class NeuroLabEngine:
             return {"ok": False, "detail": str(exc)}
 
     def _os_move_mouse(self, dx: int, dy: int) -> None:
+        # Never pile up overlapping subprocesses if the previous move is still running
+        if self._move_proc is not None and self._move_proc.poll() is None:
+            return
         try:
             if self._has_ydotool:
-                subprocess.Popen(
-                    ["ydotool", "mousemove", "--", str(dx), str(dy)],
+                self._move_proc = subprocess.Popen(
+                    ["ydotool", "mousemove", "--delay", "0", "--", str(dx), str(dy)],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
             elif self._has_xdotool and self.session_type != "wayland":
-                subprocess.Popen(
+                self._move_proc = subprocess.Popen(
                     ["xdotool", "mousemove_relative", "--", str(dx), str(dy)],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,

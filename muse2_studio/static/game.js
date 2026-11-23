@@ -84,7 +84,9 @@
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
 
+  let cachedDims = null;
   function prepCanvas() {
+    if (cachedDims) return cachedDims;
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     const w = Math.max(320, Math.floor(rect.width));
@@ -95,8 +97,13 @@
     }
     const ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { ctx, w, h };
+    cachedDims = { ctx, w, h };
+    return cachedDims;
   }
+  window.addEventListener("resize", () => { cachedDims = null; });
+  document.querySelectorAll(".seg-tab").forEach((t) => {
+    t.addEventListener("click", () => { cachedDims = null; });
+  });
 
   function emitParticles(x, y, color, count = 10) {
     for (let i = 0; i < count; i++) {
