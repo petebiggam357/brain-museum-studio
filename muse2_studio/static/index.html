@@ -416,11 +416,11 @@
       <section class="card span-3">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-eyebrow">Mind-Controlled Side-Scroller · Character: Musey</span>
-            <h2>Neuro Runner: Cortex Kingdom</h2>
+            <span class="card-eyebrow" id="game-eyebrow">Mind-Controlled Side-Scroller · Character: Musey</span>
+            <h2 id="game-title">Neuro Runner: Cortex Kingdom</h2>
           </div>
           <div class="controls">
-            <div class="filter-pill">
+            <div class="filter-pill" id="game-mode-wrap">
               <span class="muted">Control</span>
               <select id="sel-game-mode" class="ghost-sel">
                 <option value="focus_blink" selected>Blink/Jaw Jump + Focus Glide</option>
@@ -430,7 +430,7 @@
             </div>
             <label class="toggle-pill">
               <input type="checkbox" id="chk-game-audio" checked />
-              <span>SFX</span>
+              <span>Audio SFX</span>
             </label>
             <span class="pill-chip" id="game-mult">1×</span>
             <span class="pill-chip">Score: <b id="game-score" class="mono">0</b></span>
@@ -445,51 +445,51 @@
 
         <div class="card-footer">
           <span class="muted" id="game-status">Ready · Blink/Jaw (or Space) to Jump · Hold Focus (or Shift) to Glide &amp; Magnetize Orbs</span>
-          <div class="rms-pills">
+          <div class="rms-pills" id="game-legend">
             <span>Synapse Orb <b>+10</b></span>
             <span>Stomp Glitch <b>+25</b></span>
             <span>Alpha Star <b>+50 + Shield</b></span>
-            <span>Focus Zone <b>2× Multiplier</b></span>
+            <span>Focus Zone <b>2×</b></span>
           </div>
         </div>
       </section>
 
-      <section class="card">
+      <section class="card game-card-select active-game-card" data-game="runner">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-eyebrow">Hero Character</span>
-            <h2>Musey</h2>
+            <span class="card-eyebrow">Platformer · Hero: Musey</span>
+            <h2>Neuro Runner</h2>
           </div>
           <span class="pill-chip on">Playable</span>
         </div>
         <p class="muted">
-          A glowing neural sprite wearing a Muse 2 headband. Its forehead LEDs light up green in your Focus Zone, unlocking <strong>Neural Glide</strong> and an <strong>Orb Magnet Aura</strong>.
+          Mario-style side-scroller! Blink/Jaw to jump, stomp Noise Glitches, and hold Focus for Neural Glide &amp; 2× Magnet Aura.
         </p>
       </section>
 
-      <section class="card">
+      <section class="card game-card-select" data-game="zen">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-eyebrow">Coming Next</span>
+            <span class="card-eyebrow">Relaxation · Pentatonic Audio</span>
             <h2>Alpha Zen Garden</h2>
           </div>
-          <span class="pill-chip">Roadmap</span>
+          <span class="pill-chip on">Playable</span>
         </div>
         <p class="muted">
-          Grow luminous botanical sculptures and calm water ripples by sustaining deep Alpha &amp; Theta relaxation waves.
+          Bloom luminous lotuses, fireflies, and soothing pentatonic chimes by sustaining Calm (Alpha) waves. Blink to send water ripples.
         </p>
       </section>
 
-      <section class="card">
+      <section class="card game-card-select" data-game="breakout">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-eyebrow">Coming Next</span>
+            <span class="card-eyebrow">Arcade · Gyro + Lasers</span>
             <h2>Blink Breakout</h2>
           </div>
-          <span class="pill-chip">Roadmap</span>
+          <span class="pill-chip on">Playable</span>
         </div>
         <p class="muted">
-          Steer a neuro-paddle with Head Gyro and trigger power-shots with Double Blinks to shatter brick formations.
+          Steer the neon paddle with Head Gyro/Tilt, fire Twin Lasers with Blink/Jaw, and unlock a wide Focus Power Ball.
         </p>
       </section>
     </div>
