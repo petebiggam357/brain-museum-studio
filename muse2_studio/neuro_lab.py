@@ -38,6 +38,8 @@ class NeuroLabEngine:
         self.focus_clutch: bool = False  # If True, cursor only moves when focus >= focus_threshold
         self.sensitivity: float = 1.0
         self.deadzone_dps: float = 4.0
+        self.invert_x: bool = False
+        self.invert_y: bool = False
 
         # Opt-in OS desktop control (always SAFE / False on boot)
         self.os_mouse_armed: bool = False
@@ -78,6 +80,10 @@ class NeuroLabEngine:
             self.focus_clutch = bool(cfg["focus_clutch"])
         if "sensitivity" in cfg and cfg["sensitivity"] is not None:
             self.sensitivity = max(0.2, min(4.0, float(cfg["sensitivity"])))
+        if "invert_x" in cfg and cfg["invert_x"] is not None:
+            self.invert_x = bool(cfg["invert_x"])
+        if "invert_y" in cfg and cfg["invert_y"] is not None:
+            self.invert_y = bool(cfg["invert_y"])
         if "os_mouse_armed" in cfg and cfg["os_mouse_armed"] is not None:
             self.os_mouse_armed = bool(cfg["os_mouse_armed"])
         if "os_keyboard_armed" in cfg and cfg["os_keyboard_armed"] is not None:
@@ -133,20 +139,23 @@ class NeuroLabEngine:
 
         clutch_ok = (not self.focus_clutch) or self.in_zone
         if self.cursor_enabled and clutch_ok:
-            # Map yaw (gz) -> horizontal dx, pitch (gy) -> vertical dy
+            # Map yaw (gz) -> horizontal dx, pitch (gy) -> vertical dy (head down => cursor down)
             dx_dps = 0.0 if abs(gz) < self.deadzone_dps else (gz - (self.deadzone_dps if gz > 0 else -self.deadzone_dps))
             dy_dps = 0.0 if abs(gy) < self.deadzone_dps else (gy - (self.deadzone_dps if gy > 0 else -self.deadzone_dps))
 
+            sign_x = 1.0 if self.invert_x else -1.0
+            sign_y = -1.0 if self.invert_y else 1.0
+
             # Normalized sandbox movement
-            norm_dx = -dx_dps * dt * 0.006 * self.sensitivity
-            norm_dy = -dy_dps * dt * 0.006 * self.sensitivity
+            norm_dx = sign_x * dx_dps * dt * 0.006 * self.sensitivity
+            norm_dy = sign_y * dy_dps * dt * 0.006 * self.sensitivity
             self.cursor_x = max(0.02, min(0.98, self.cursor_x + norm_dx))
             self.cursor_y = max(0.02, min(0.98, self.cursor_y + norm_dy))
 
             # Optional real OS cursor movement
             if self.os_mouse_armed and (abs(dx_dps) > 0.1 or abs(dy_dps) > 0.1):
-                px_dx = int(round(-dx_dps * dt * 11.0 * self.sensitivity))
-                px_dy = int(round(-dy_dps * dt * 11.0 * self.sensitivity))
+                px_dx = int(round(sign_x * dx_dps * dt * 11.0 * self.sensitivity))
+                px_dy = int(round(sign_y * dy_dps * dt * 11.0 * self.sensitivity))
                 if px_dx != 0 or px_dy != 0:
                     self._os_move_mouse(px_dx, px_dy)
 
@@ -167,6 +176,8 @@ class NeuroLabEngine:
                 "focus_clutch": self.focus_clutch,
                 "clutch_active": clutch_ok,
                 "sensitivity": self.sensitivity,
+                "invert_x": self.invert_x,
+                "invert_y": self.invert_y,
             },
             "os_mouse_armed": self.os_mouse_armed,
             "os_keyboard_armed": self.os_keyboard_armed,
@@ -260,6 +271,8 @@ class NeuroLabEngine:
                 "enabled": self.cursor_enabled,
                 "focus_clutch": self.focus_clutch,
                 "sensitivity": self.sensitivity,
+                "invert_x": self.invert_x,
+                "invert_y": self.invert_y,
             },
             "os_mouse_armed": self.os_mouse_armed,
             "os_keyboard_armed": self.os_keyboard_armed,

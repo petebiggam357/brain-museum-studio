@@ -99,6 +99,7 @@
     labBaseline: document.getElementById("lab-baseline"),
     chkCursorOn: document.getElementById("chk-cursor-on"),
     chkFocusClutch: document.getElementById("chk-focus-clutch"),
+    chkInvertY: document.getElementById("chk-invert-y"),
     selClickTrigger: document.getElementById("sel-click-trigger"),
     btnCursorRecenter: document.getElementById("btn-cursor-recenter"),
     btnOsMouseArm: document.getElementById("btn-os-mouse-arm"),
@@ -668,6 +669,7 @@
     if (data.cursor) {
       el.chkCursorOn.checked = !!data.cursor.enabled;
       el.chkFocusClutch.checked = !!data.cursor.focus_clutch;
+      if (el.chkInvertY) el.chkInvertY.checked = !!data.cursor.invert_y;
     }
     if (data.environment) {
       const e = data.environment;
@@ -686,6 +688,7 @@
   });
   el.chkCursorOn.addEventListener("change", () => api("/api/lab/config", "POST", { cursor_enabled: el.chkCursorOn.checked }));
   el.chkFocusClutch.addEventListener("change", () => api("/api/lab/config", "POST", { focus_clutch: el.chkFocusClutch.checked }));
+  el.chkInvertY?.addEventListener("change", () => api("/api/lab/config", "POST", { invert_y: el.chkInvertY.checked }));
   el.rngCursorSens.addEventListener("input", () => api("/api/lab/config", "POST", { sensitivity: Number(el.rngCursorSens.value) }));
   el.btnCursorRecenter.addEventListener("click", () => api("/api/lab/recenter", "POST"));
   el.btnOsMouseArm.addEventListener("click", async () => renderLabConfig(await api("/api/lab/config", "POST", { os_mouse_armed: !osMouseArmed })));

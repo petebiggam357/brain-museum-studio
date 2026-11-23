@@ -102,6 +102,8 @@ class LabConfigRequest(BaseModel):
     cursor_enabled: Optional[bool] = None
     focus_clutch: Optional[bool] = None
     sensitivity: Optional[float] = None
+    invert_x: Optional[bool] = None
+    invert_y: Optional[bool] = None
     os_mouse_armed: Optional[bool] = None
     os_keyboard_armed: Optional[bool] = None
 
