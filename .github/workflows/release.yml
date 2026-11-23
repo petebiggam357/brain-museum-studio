@@ -34,6 +34,7 @@ jobs:
             add_data_sep: ":"
             archive: tar.gz
             extra_pkgs: "pywebview PyQt6 PyQt6-WebEngine qtpy"
+            extra_pyi_flags: "--hidden-import webview.platforms.qt --hidden-import PyQt6 --hidden-import PyQt6.QtCore --hidden-import PyQt6.QtGui --hidden-import PyQt6.QtWidgets --hidden-import PyQt6.QtWebEngineWidgets --hidden-import PyQt6.QtWebChannel --collect-all PyQt6"
             icon_flag: ""
             windowed_flag: ""
           - os: macos-14
@@ -41,6 +42,7 @@ jobs:
             add_data_sep: ":"
             archive: tar.gz
             extra_pkgs: "pywebview"
+            extra_pyi_flags: "--hidden-import webview.platforms.cocoa"
             icon_flag: ""
             windowed_flag: "--windowed"
           - os: windows-latest
@@ -48,6 +50,7 @@ jobs:
             add_data_sep: ";"
             archive: zip
             extra_pkgs: "pywebview"
+            extra_pyi_flags: "--hidden-import webview.platforms.edgechromium"
             icon_flag: "--icon packaging/brain-museum-studio.ico"
             windowed_flag: "--windowed"
     runs-on: ${{ matrix.os }}
@@ -75,6 +78,7 @@ jobs:
             --hidden-import uvicorn.protocols.http.auto \
             --hidden-import uvicorn.protocols.websockets.auto \
             --hidden-import uvicorn.lifespan.on \
+            ${{ matrix.extra_pyi_flags }} \
             muse2_studio/cli.py
       - name: Package archive (Unix)
         if: matrix.archive == 'tar.gz'
@@ -101,6 +105,8 @@ jobs:
           cat <<'EOF' > AppDir/AppRun
           #!/bin/sh
           HERE="$(dirname "$(readlink -f "${0}")")"
+          export QT_API=pyqt6
+          export PYWEBVIEW_GUI=qt
           export QTWEBENGINE_DISABLE_SANDBOX=1
           exec "${HERE}/usr/bin/brain-museum-studio" "$@"
           EOF

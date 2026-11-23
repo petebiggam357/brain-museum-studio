@@ -85,6 +85,10 @@ def main() -> None:
     use_native_window = (not args.browser) and (not args.no_browser)
     if use_native_window:
         try:
+            import os
+            if sys.platform.startswith("linux"):
+                os.environ.setdefault("QT_API", "pyqt6")
+                os.environ.setdefault("PYWEBVIEW_GUI", "qt")
             import webview  # type: ignore
 
             port = _find_free_port(args.port)
@@ -117,12 +121,13 @@ def main() -> None:
         except Exception as exc:
             print(f"Native window unavailable ({exc}); falling back to browser server mode.")
 
-    url = f"http://{args.host}:{args.port}"
+    port = _find_free_port(args.port)
+    url = f"http://{args.host}:{port}"
     print(f"🧠 Brain Museum Studio running at {url}")
     if (args.browser or getattr(sys, "frozen", False)) and not args.no_browser:
         threading.Thread(target=_open_browser_later, args=(url,), daemon=True).start()
 
-    uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+    uvicorn.run(app, host=args.host, port=port, log_level="info")
 
 
 if __name__ == "__main__":

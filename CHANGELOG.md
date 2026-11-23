@@ -2,6 +2,12 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
+## `v0.0.4` — Self-Contained Linux AppImage PyQt6 Bundling & Auto-Port Fix
+
+### Fixed
+- **Linux AppImage Native Window (`PyQt6` + `QtWebEngine`):** Explicitly bundled `PyQt6`, `PyQt6.QtWebEngineWidgets`, and `webview.platforms.qt` in PyInstaller (`--collect-all PyQt6`) and pinned `QT_API=pyqt6` / `PYWEBVIEW_GUI=qt` so `BrainMuseumStudio-x86_64.AppImage` launches directly in its own native desktop app window without `No Qt bindings could be found`.
+- **Automatic Free-Port Fallback:** Always picks an available local port if `8765` is already in use, preventing `[Errno 98] address already in use`.
+
 ## `v0.0.3` — Expanded Zen Meditation & Enlightenment Sanctuary
 
 ### New
