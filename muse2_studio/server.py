@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, Optional, Set
@@ -21,12 +22,18 @@ from .ml import PersonalStateClassifier
 from .neuro_lab import NeuroLabEngine
 from .recorder import SessionRecorder
 
-BASE_DIR = Path(__file__).resolve().parent
-STATIC_DIR = BASE_DIR / "static"
-PROJECT_DIR = BASE_DIR.parent
-RECORDINGS_DIR = PROJECT_DIR / "recordings"
-CONFIG_DIR = PROJECT_DIR / "config"
-MODELS_DIR = PROJECT_DIR / "models"
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    # PyInstaller standalone binary paths
+    STATIC_DIR = Path(sys._MEIPASS) / "muse2_studio" / "static"
+    DATA_ROOT = Path.home() / ".brain-museum-studio"
+else:
+    BASE_DIR = Path(__file__).resolve().parent
+    STATIC_DIR = BASE_DIR / "static"
+    DATA_ROOT = BASE_DIR.parent
+
+RECORDINGS_DIR = DATA_ROOT / "recordings"
+CONFIG_DIR = DATA_ROOT / "config"
+MODELS_DIR = DATA_ROOT / "models"
 
 dsp = SignalProcessor()
 recorder = SessionRecorder(RECORDINGS_DIR)
