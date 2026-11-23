@@ -176,7 +176,7 @@ async def lifespan(_app: FastAPI):
         await device.disconnect()
 
 
-app = FastAPI(title="Brain Museum Studio", version="0.0.2", lifespan=lifespan)
+app = FastAPI(title="Brain Museum Studio", version="0.0.3", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 

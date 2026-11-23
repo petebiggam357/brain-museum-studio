@@ -2,6 +2,15 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
+## `v0.0.3` — Expanded Zen Meditation & Enlightenment Sanctuary
+
+### New
+- **Multi-Stage Binaural Frequency Journeys:** Smoothly ramp your stereo binaural beats across the session (*Gateway to Stillness* `12→5.5→10 Hz`, *Non-Dual Insight* `10→4.5→40→10 Hz`, *Deep Sleep Descent* `10→6→2 Hz`), plus **Custom Solfeggio Carrier (`110–432 Hz`) & Beat (`1–42 Hz`)** sliders.
+- **Muse-Style Biofeedback Weather & Stillness Chimes:** Ocean/wind gently quiets as your Muse 2 Calm rises, singing-bowl resonance warms, and crystalline stereo chimes blossom when you hold Deep Stillness streaks.
+- **2 New Fullscreen Zen Scenes (6 Total):** Added *Temple Lanterns* and *Cosmic Flower of Life* alongside *Aurora Cosmos*, *Kyoto Moon Pond*, *Breathing Mandala*, and *Misty Mountain Dawn*.
+- **Coherent 5.5s HRV Breath Pacer, Guided Contemplative Cues, & Interval Bells** (`Every 2m` / `Every 5m`).
+- **Post-Session Stillness Reflection & Meditation Journal:** Tracks Duration, Stillness %, Peak Streak, Chimes Earned, and saves personal reflection notes locally.
+
 ## `v0.0.2` — Self-Contained Native Desktop App & Full AppImage Icon
 
 ### New

@@ -506,24 +506,28 @@
     </div>
   </main>
 
-  <!-- TAB: MEDITATION ROOM (Binaural Beats + Fullscreen Zen Sanctuary) -->
+  <!-- TAB: MEDITATION ROOM (Binaural Beats + Enlightenment Sanctuary) -->
   <main class="container tab-panel hidden" id="panel-meditation">
     <div class="bento-grid">
       <section class="card span-3">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-eyebrow">Stereo Binaural Entrainment · Use Headphones</span>
-            <h2>Zen Meditation Room</h2>
+            <span class="card-eyebrow">Stereo Binaural Entrainment &amp; Live Biofeedback · Use Headphones</span>
+            <h2>Zen Meditation Sanctuary</h2>
           </div>
           <div class="controls">
             <div class="filter-pill">
-              <span class="muted">State</span>
+              <span class="muted">Journey / State</span>
               <select id="sel-med-preset" class="ghost-sel">
-                <option value="delta">Delta · 2.5 Hz (Deep Rest)</option>
-                <option value="theta" selected>Theta · 6.0 Hz (Meditation)</option>
-                <option value="schumann">Schumann · 7.83 Hz (Grounding)</option>
-                <option value="alpha">Alpha · 10.0 Hz (Calm Flow)</option>
-                <option value="gamma">Gamma · 40.0 Hz (Lucid Clarity)</option>
+                <option value="gateway" selected>Journey · Gateway to Stillness (12→5.5→10 Hz)</option>
+                <option value="nondual">Journey · Non-Dual Insight (10→4.5→40→10 Hz)</option>
+                <option value="sleep">Journey · Deep Sleep Descent (10→6→2 Hz)</option>
+                <option value="delta">Static · Delta 2.5 Hz (Deep Rest)</option>
+                <option value="theta">Static · Theta 6.0 Hz (Meditation)</option>
+                <option value="schumann">Static · Schumann 7.83 Hz (Grounding)</option>
+                <option value="alpha">Static · Alpha 10.0 Hz (Calm Flow)</option>
+                <option value="gamma">Static · Gamma 40.0 Hz (Lucid Clarity)</option>
+                <option value="custom">Custom Solfeggio / Beat Hz</option>
               </select>
             </div>
             <div class="filter-pill">
@@ -532,13 +536,16 @@
                 <option value="aurora" selected>Aurora Cosmos</option>
                 <option value="pond">Kyoto Moon Pond</option>
                 <option value="mandala">Breathing Mandala</option>
+                <option value="lanterns">Temple Lanterns</option>
+                <option value="flower">Cosmic Flower of Life</option>
                 <option value="mountain">Misty Mountain Dawn</option>
               </select>
             </div>
             <div class="filter-pill">
               <span class="muted">Breath</span>
               <select id="sel-med-breath" class="ghost-sel">
-                <option value="box" selected>Box (4-4-4-4)</option>
+                <option value="coherent" selected>Coherent (5.5s)</option>
+                <option value="box">Box (4-4-4-4)</option>
                 <option value="478">Relax (4-7-8)</option>
                 <option value="off">Off</option>
               </select>
@@ -550,12 +557,34 @@
                 <option value="600" selected>10 min</option>
                 <option value="900">15 min</option>
                 <option value="1200">20 min</option>
+                <option value="1800">30 min</option>
                 <option value="0">Open</option>
+              </select>
+            </div>
+            <div class="filter-pill">
+              <span class="muted">Bell</span>
+              <select id="sel-med-bell-int" class="ghost-sel">
+                <option value="0" selected>Start/End</option>
+                <option value="120">Every 2m</option>
+                <option value="300">Every 5m</option>
               </select>
             </div>
             <button id="btn-med-play" class="btn primary small">Start Meditation</button>
             <button id="btn-med-bell" class="btn tonal small" title="Ring Tibetan singing bowl">Bell</button>
             <button id="btn-med-fullscreen" class="btn tonal small">Fullscreen</button>
+          </div>
+        </div>
+
+        <div class="cockpit-strip hidden" id="med-custom-wrap">
+          <div class="controls">
+            <span class="muted">Carrier (Solfeggio):</span>
+            <input id="rng-med-carrier" type="range" min="110" max="432" step="1" value="216" style="width:120px" />
+            <b id="val-med-carrier" class="mono">216 Hz</b>
+          </div>
+          <div class="controls">
+            <span class="muted">Binaural Beat:</span>
+            <input id="rng-med-beat" type="range" min="1.0" max="42.0" step="0.25" value="7.83" style="width:120px" />
+            <b id="val-med-beat" class="mono">7.83 Hz</b>
           </div>
         </div>
 
@@ -569,20 +598,58 @@
             </div>
           </div>
           <div class="med-hud-bottom">
+            <div class="med-cue-text" id="med-cue-text"></div>
             <div class="med-breath-label" id="med-breath-prompt">Breathe Naturally</div>
-            <div class="med-freq-sub mono" id="med-freq-readout">L 180 Hz · R 186 Hz (6 Hz beat)</div>
+            <div class="med-freq-sub mono" id="med-freq-readout">L 216 Hz · R 226 Hz (10 Hz beat)</div>
           </div>
         </div>
 
         <div class="card-footer">
           <div class="controls">
-            <span class="muted">Binaural Beats</span>
-            <input id="rng-med-binaural" type="range" min="0" max="1" step="0.05" value="0.30" style="width:100px" />
-            <span class="muted">Ocean &amp; Singing Bowl</span>
-            <input id="rng-med-ambient" type="range" min="0" max="1" step="0.05" value="0.28" style="width:100px" />
+            <span class="muted">Binaural</span>
+            <input id="rng-med-binaural" type="range" min="0" max="1" step="0.05" value="0.30" style="width:90px" />
+            <span class="muted">Ocean &amp; Bowl</span>
+            <input id="rng-med-ambient" type="range" min="0" max="1" step="0.05" value="0.28" style="width:90px" />
+            <label class="toggle-pill" title="Ocean quiets and chimes blossom when your Muse 2 detects Deep Stillness">
+              <input type="checkbox" id="chk-med-bio" checked />
+              <span>Biofeedback Weather &amp; Chimes</span>
+            </label>
+            <label class="toggle-pill">
+              <input type="checkbox" id="chk-med-prompts" checked />
+              <span>Guided Cues</span>
+            </label>
           </div>
-          <span class="muted">Tip: Wear stereo headphones for true binaural beat entrainment · Singing bowl swells with Calm</span>
         </div>
+      </section>
+
+      <!-- Post-Session Reflection & Enlightenment Journal -->
+      <section class="card span-3 hidden" id="med-summary-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Session Complete</span>
+            <h2>Stillness Reflection</h2>
+          </div>
+          <div class="rms-pills">
+            <span>Duration <b id="med-sum-dur">--</b></span>
+            <span>Stillness <b id="med-sum-still">--%</b></span>
+            <span>Peak Streak <b id="med-sum-streak">--</b></span>
+            <span>Chimes Earned <b id="med-sum-chimes">0</b></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <input id="med-journal-note" type="text" placeholder="Optional reflection note (e.g. Felt deep stillness after 4 minutes)..." />
+          <button id="btn-med-save-journal" class="btn primary small">Save to Journal</button>
+        </div>
+      </section>
+
+      <section class="card span-3">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Contemplative History</span>
+            <h2>Meditation Journal</h2>
+          </div>
+        </div>
+        <ul class="clean-list" id="med-journal-list"></ul>
       </section>
     </div>
   </main>
