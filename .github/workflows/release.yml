@@ -29,12 +29,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             artifact_name: brain-museum-studio-linux-x64
             add_data_sep: ":"
             archive: tar.gz
             extra_pkgs: "pywebview PyQt6 PyQt6-WebEngine qtpy"
-            extra_pyi_flags: "--hidden-import webview.platforms.qt --hidden-import PyQt6 --hidden-import PyQt6.QtCore --hidden-import PyQt6.QtGui --hidden-import PyQt6.QtWidgets --hidden-import PyQt6.QtWebEngineWidgets --hidden-import PyQt6.QtWebChannel --collect-all PyQt6"
+            extra_pyi_flags: "--hidden-import webview.platforms.qt --hidden-import PyQt6 --hidden-import PyQt6.QtCore --hidden-import PyQt6.QtGui --hidden-import PyQt6.QtWidgets --hidden-import PyQt6.QtWebEngineCore --hidden-import PyQt6.QtWebEngineWidgets --hidden-import PyQt6.QtWebChannel --collect-all PyQt6 --collect-all PyQt6_WebEngine"
             icon_flag: ""
             windowed_flag: ""
           - os: macos-14
@@ -91,7 +91,7 @@ jobs:
             tar -czf "release_assets/${{ matrix.artifact_name }}.tar.gz" -C dist brain-museum-studio
           fi
       - name: Build Linux AppImage (Self-Contained Native Window + Icon)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
           mkdir -p AppDir/usr/bin AppDir/usr/share/icons/hicolor/256x256/apps

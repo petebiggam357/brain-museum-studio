@@ -2,6 +2,13 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
+## `v0.0.5` — Universal Linux GLIBC 2.35 AppImage, Chromeless App Fallback & Graphical Alerts
+
+### Fixed
+- **Universal Linux GLIBC Compatibility (`ubuntu-22.04`):** Built the Linux AppImage on Ubuntu 22.04 (glibc 2.35) instead of `ubuntu-latest` (glibc 2.42+), fixing `GLIBC_2.42 / GLIBC_2.43 not found` errors on Pop!_OS 24.04, Ubuntu 24.04, and other Linux distros.
+- **Clean Host Environment for Subprocesses:** Strips PyInstaller's bundled `LD_LIBRARY_PATH` before spawning external browser/desktop commands so host tools (`xdg-open`, `flatpak`, `zenity`) never load mismatched shared libraries.
+- **Chromeless `--app=` Window Fallback & Graphical Error Alerts:** If Qt/GTK is unavailable on an exotic distro, automatically opens a dedicated tabless desktop window via Chromium/Chrome/Brave (`--app=`) and displays native graphical error alerts (`zenity` / `kdialog` / `osascript` / `tkinter`) on startup failures.
+
 ## `v0.0.4` — Self-Contained Linux AppImage PyQt6 Bundling & Auto-Port Fix
 
 ### Fixed
