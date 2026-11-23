@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brain Museum Studio</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- Frosted Glass Apple-style Top Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.54Z"/>
+          <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.54Z"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Brain Museum Studio</h1>
+        <div class="status-line">
+          <span class="dot" id="conn-dot"></span>
+          <span id="conn-status">Disconnected</span>
+          <span class="ml-pill hidden" id="ml-live-pill">State: --</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Apple-style Segmented Navigation -->
+    <nav class="segmented-nav" role="tablist" aria-label="Studio Sections">
+      <button class="seg-tab active" data-tab="monitor" role="tab">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Monitor</span>
+      </button>
+      <button class="seg-tab" data-tab="lab" role="tab">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 9V3"/><path d="M14 9V3"/><path d="M10 9 4.5 18.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.5L14 9"/></svg>
+        <span>Neuro Lab</span>
+      </button>
+      <button class="seg-tab" data-tab="games" role="tab">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="4"/></svg>
+        <span>Games</span>
+      </button>
+      <button class="seg-tab" data-tab="bci" role="tab">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>BCI</span>
+        <span class="pill-chip" id="bci-nav-badge">SAFE</span>
+      </button>
+      <button class="seg-tab" data-tab="osc" role="tab">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>
+        <span>OSC</span>
+        <span class="pill-chip" id="osc-nav-badge">OFF</span>
+      </button>
+      <button class="seg-tab" data-tab="ml" role="tab">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        <span>ML Lab</span>
+      </button>
+    </nav>
+
+    <div class="controls">
+      <button id="btn-scan" class="btn tonal">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg>
+        <span>Scan</span>
+      </button>
+      <select id="ble-select" title="Detected Muse 2 devices">
+        <option value="">No Muse 2 found</option>
+      </select>
+      <button id="btn-connect-ble" class="btn primary" disabled>Connect</button>
+      <button id="btn-sim" class="btn tonal accent-text">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span>Sim</span>
+      </button>
+      <button id="btn-disconnect" class="btn icon-btn danger-ghost" disabled title="Disconnect">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+      </button>
+      <button id="btn-theme" class="btn icon-btn tonal" title="Toggle Light / Dark theme">
+        <svg id="ico-sun" class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg id="ico-moon" class="ico hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Contextual Simulator Ribbon -->
+  <section class="sim-bar hidden" id="sim-bar">
+    <span class="sim-label">Simulator Active</span>
+    <div class="sim-group">
+      <button class="chip sim-state active" data-state="calm">Calm (Alpha)</button>
+      <button class="chip sim-state" data-state="focus">Focus (Beta)</button>
+      <button class="chip sim-state" data-state="drowsy">Drowsy (Theta)</button>
+    </div>
+    <div class="sim-group">
+      <button class="chip" id="btn-sim-blink">Inject Blink</button>
+      <button class="chip" id="btn-sim-jaw">Inject Jaw Clench</button>
+    </div>
+  </section>
+
+  <!-- TAB 1: LIVE MONITOR -->
+  <main class="container tab-panel" id="panel-monitor">
+    <div class="bento-grid">
+      <!-- Hero Card: Live 4-Channel EEG Oscilloscope -->
+      <section class="card span-2 hero-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">256 Hz · Microvolts</span>
+            <h2>Neural Waveform</h2>
+          </div>
+          <div class="toolbar">
+            <div class="filter-pill">
+              <span class="muted">Notch</span>
+              <select id="sel-notch" class="ghost-sel">
+                <option value="60" selected>60 Hz</option>
+                <option value="50">50 Hz</option>
+                <option value="0">Off</option>
+              </select>
+            </div>
+            <label class="toggle-pill">
+              <input type="checkbox" id="chk-bandpass" checked />
+              <span>1–45 Hz</span>
+            </label>
+            <!-- Clean Horseshoe Sensor Fit Indicator -->
+            <div class="horseshoe" id="horseshoe" title="Muse 2 Electrode Contact Quality">
+              <span class="node" data-ch="TP9">TP9</span>
+              <span class="node" data-ch="AF7">AF7</span>
+              <span class="node" data-ch="AF8">AF8</span>
+              <span class="node" data-ch="TP10">TP10</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="canvas-shell eeg-shell">
+          <canvas id="eeg-canvas"></canvas>
+        </div>
+
+        <div class="card-footer">
+          <div class="rms-pills" id="rms-readout">
+            <span>TP9 <b>--</b></span>
+            <span>AF7 <b>--</b></span>
+            <span>AF8 <b>--</b></span>
+            <span>TP10 <b>--</b></span>
+          </div>
+          <span class="muted" id="battery-readout">
+            <svg class="ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/></svg>
+            --%
+          </span>
+        </div>
+      </section>
+
+      <!-- Right Column: Activity Rings + Brainwave Bands + Spectrum -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Real-Time DSP</span>
+            <h2>Cognitive State</h2>
+          </div>
+          <div class="bpm-pill" id="bpm-pill">
+            <svg class="ico-sm heart-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <span id="val-bpm">--</span>
+            <small>BPM</small>
+          </div>
+        </div>
+
+        <!-- Apple Watch-inspired Progress Rings -->
+        <div class="rings-row">
+          <div class="ring-card">
+            <svg class="ring-svg" viewBox="0 0 84 84">
+              <circle class="ring-bg" cx="42" cy="42" r="34" />
+              <circle class="ring-fg focus" id="ring-focus" cx="42" cy="42" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6" />
+            </svg>
+            <div class="ring-center">
+              <span class="ring-val" id="val-focus">--</span>
+              <span class="ring-lbl">Focus</span>
+            </div>
+          </div>
+          <div class="ring-card">
+            <svg class="ring-svg" viewBox="0 0 84 84">
+              <circle class="ring-bg" cx="42" cy="42" r="34" />
+              <circle class="ring-fg calm" id="ring-calm" cx="42" cy="42" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6" />
+            </svg>
+            <div class="ring-center">
+              <span class="ring-val" id="val-calm">--</span>
+              <span class="ring-lbl">Calm</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bands" id="bands-container">
+          <div class="band-row" data-band="delta">
+            <span class="band-name"><i class="swatch delta"></i>Delta <small>1–4</small></span>
+            <div class="bar-track"><div class="bar-fill delta"></div></div>
+            <span class="band-pct">0%</span>
+          </div>
+          <div class="band-row" data-band="theta">
+            <span class="band-name"><i class="swatch theta"></i>Theta <small>4–8</small></span>
+            <div class="bar-track"><div class="bar-fill theta"></div></div>
+            <span class="band-pct">0%</span>
+          </div>
+          <div class="band-row" data-band="alpha">
+            <span class="band-name"><i class="swatch alpha"></i>Alpha <small>8–13</small></span>
+            <div class="bar-track"><div class="bar-fill alpha"></div></div>
+            <span class="band-pct">0%</span>
+          </div>
+          <div class="band-row" data-band="beta">
+            <span class="band-name"><i class="swatch beta"></i>Beta <small>13–30</small></span>
+            <div class="bar-track"><div class="bar-fill beta"></div></div>
+            <span class="band-pct">0%</span>
+          </div>
+          <div class="band-row" data-band="gamma">
+            <span class="band-name"><i class="swatch gamma"></i>Gamma <small>30–44</small></span>
+            <div class="bar-track"><div class="bar-fill gamma"></div></div>
+            <span class="band-pct">0%</span>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <div class="sub-header"><span>FFT Spectrum</span><span class="muted">1–45 Hz</span></div>
+          <div class="canvas-shell fft-shell">
+            <canvas id="fft-canvas"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Row: PPG Pulse -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">64 Hz · Infrared</span>
+            <h2>Optical Pulse</h2>
+          </div>
+          <span class="muted mono" id="imu-readout">0.00, 0.00, 1.00 g</span>
+        </div>
+        <div class="canvas-shell ppg-shell">
+          <canvas id="ppg-canvas"></canvas>
+        </div>
+      </section>
+
+      <!-- Bottom Row: Events & Markers -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Live Feed</span>
+            <h2>Events &amp; Markers</h2>
+          </div>
+        </div>
+        <div class="input-group">
+          <input id="marker-input" type="text" placeholder="Annotate moment (e.g. Eyes Closed)" />
+          <button id="btn-marker" class="btn tonal small">Add</button>
+        </div>
+        <ul class="clean-list" id="event-log"></ul>
+      </section>
+
+      <!-- Bottom Row: Session Recorder -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">CSV + JSON</span>
+            <h2>Session Recorder</h2>
+          </div>
+          <span class="rec-indicator" id="rec-status">Idle</span>
+        </div>
+        <div class="input-group">
+          <input id="rec-label" type="text" value="brain_session" placeholder="Session name" />
+          <button id="btn-record" class="btn primary small">Record</button>
+        </div>
+        <ul class="clean-list" id="rec-list"></ul>
+      </section>
+    </div>
+  </main>
+
+  <!-- TAB 5: NEURO LAB (Neurofeedback, Hybrid Mouse & Brainwave Keyboard) -->
+  <main class="container tab-panel hidden" id="panel-lab">
+    <div class="bento-grid">
+      <!-- Calibration & Audio Feedback Ribbon Card -->
+      <section class="card span-3">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Santa Cruz Neurofeedback Protocol</span>
+            <h2>Personal Baseline &amp; Threshold</h2>
+          </div>
+          <div class="controls">
+            <button id="btn-lab-cal" class="btn primary small">Calibrate Baseline (10s)</button>
+            <label class="toggle-pill">
+              <input type="checkbox" id="chk-lab-audio" />
+              <span>Harmonic Audio</span>
+            </label>
+            <div class="filter-pill">
+              <span class="muted">Focus Threshold</span>
+              <input id="rng-lab-thresh" type="range" min="15" max="85" value="50" style="width:90px" />
+              <b id="val-lab-thresh" class="mono">50</b>
+            </div>
+            <span class="pill-chip" id="lab-env-badge">Linux</span>
+          </div>
+        </div>
+        <div class="cal-bar-wrap hidden" id="lab-cal-wrap">
+          <div class="cal-bar-fill" id="lab-cal-fill"></div>
+        </div>
+      </section>
+
+      <!-- Card 1: Focus Levitation Neurofeedback Arena -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Focus Training</span>
+            <h2>Neural Levitation</h2>
+          </div>
+          <div class="controls">
+            <span class="pill-chip" id="lab-zone-badge">Below Threshold</span>
+          </div>
+        </div>
+        <div class="canvas-shell lab-shell">
+          <canvas id="lab-orb-canvas"></canvas>
+        </div>
+        <div class="card-footer">
+          <span class="muted">Streak: <b id="lab-streak" class="mono">0.0s</b></span>
+          <span class="muted">Best: <b id="lab-best-streak" class="mono">0.0s</b></span>
+          <span class="muted">Baseline: <b id="lab-baseline" class="mono">35</b></span>
+        </div>
+      </section>
+
+      <!-- Card 2: Hybrid Brain + Head Mouse Sandbox & OS Control -->
+      <section class="card span-2">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Gyro Steer + Brain/Gesture Click</span>
+            <h2>Hybrid Mind Cursor</h2>
+          </div>
+          <div class="controls">
+            <label class="toggle-pill">
+              <input type="checkbox" id="chk-cursor-on" />
+              <span>Enable Cursor</span>
+            </label>
+            <label class="toggle-pill" title="Cursor only moves while Focus is above threshold">
+              <input type="checkbox" id="chk-focus-clutch" />
+              <span>Focus Clutch</span>
+            </label>
+            <div class="filter-pill">
+              <span class="muted">Click</span>
+              <select id="sel-click-trigger" class="ghost-sel">
+                <option value="double_blink" selected>Double Blink</option>
+                <option value="jaw_clench">Jaw Clench</option>
+                <option value="focus_dwell">Focus Dwell (1s)</option>
+              </select>
+            </div>
+            <button id="btn-cursor-recenter" class="btn tonal small">Recenter</button>
+            <button id="btn-os-mouse-arm" class="btn danger small">OS Mouse: SAFE</button>
+          </div>
+        </div>
+        <div class="canvas-shell lab-shell">
+          <canvas id="lab-cursor-canvas"></canvas>
+        </div>
+        <div class="card-footer">
+          <span class="muted">Targets Hit: <b id="lab-hits" class="mono">0</b></span>
+          <div class="controls">
+            <span class="muted">Sensitivity</span>
+            <input id="rng-cursor-sens" type="range" min="0.4" max="3.0" step="0.2" value="1.2" style="width:90px" />
+          </div>
+          <span class="muted" id="lab-os-hint">Sandbox active — turn head to steer, trigger to click</span>
+        </div>
+      </section>
+
+      <!-- Card 3: Brainwave Virtual Keyboard (Row-Column BCI Speller) -->
+      <section class="card span-3">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Row-Column BCI Speller</span>
+            <h2>Brainwave Virtual Keyboard</h2>
+          </div>
+          <div class="controls">
+            <div class="filter-pill">
+              <span class="muted">Select via</span>
+              <select id="sel-kbd-trigger" class="ghost-sel">
+                <option value="focus_surge" selected>Focus Surge</option>
+                <option value="double_blink">Double Blink</option>
+                <option value="jaw_clench">Jaw Clench</option>
+              </select>
+            </div>
+            <div class="filter-pill">
+              <span class="muted">Speed</span>
+              <select id="sel-kbd-speed" class="ghost-sel">
+                <option value="900">Fast (0.9s)</option>
+                <option value="1300" selected>Medium (1.3s)</option>
+                <option value="1800">Relaxed (1.8s)</option>
+              </select>
+            </div>
+            <button id="btn-kbd-toggle" class="btn primary small">Start Scanner</button>
+            <button id="btn-kbd-speak" class="btn tonal small">Speak</button>
+            <button id="btn-kbd-clear" class="btn tonal danger-text small">Clear</button>
+            <button id="btn-os-kbd-arm" class="btn danger small">OS Type: SAFE</button>
+          </div>
+        </div>
+
+        <div class="kbd-composer">
+          <input id="kbd-output" type="text" placeholder="Hands-free BCI text appears here... (trigger locks Row → locks Key)" />
+          <span class="pill-chip" id="kbd-phase-badge">Idle</span>
+        </div>
+
+        <div class="bci-keyboard" id="bci-keyboard"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- TAB: GAMES (Mind-Controlled Arcade) -->
+  <main class="container tab-panel hidden" id="panel-games">
+    <div class="bento-grid">
+      <section class="card span-3">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Mind-Controlled Side-Scroller · Character: Musey</span>
+            <h2>Neuro Runner: Cortex Kingdom</h2>
+          </div>
+          <div class="controls">
+            <div class="filter-pill">
+              <span class="muted">Control</span>
+              <select id="sel-game-mode" class="ghost-sel">
+                <option value="focus_blink" selected>Blink/Jaw Jump + Focus Glide</option>
+                <option value="focus_jetpack">Pure Focus Jetpack</option>
+                <option value="jaw_tilt">Jaw Jump + Head-Tilt Speed</option>
+              </select>
+            </div>
+            <label class="toggle-pill">
+              <input type="checkbox" id="chk-game-audio" checked />
+              <span>SFX</span>
+            </label>
+            <span class="pill-chip" id="game-mult">1×</span>
+            <span class="pill-chip">Score: <b id="game-score" class="mono">0</b></span>
+            <span class="pill-chip">Best: <b id="game-best" class="mono">0</b></span>
+            <button id="btn-game-start" class="btn primary small">Start Game</button>
+          </div>
+        </div>
+
+        <div class="canvas-shell game-shell">
+          <canvas id="game-canvas"></canvas>
+        </div>
+
+        <div class="card-footer">
+          <span class="muted" id="game-status">Ready · Blink/Jaw (or Space) to Jump · Hold Focus (or Shift) to Glide &amp; Magnetize Orbs</span>
+          <div class="rms-pills">
+            <span>Synapse Orb <b>+10</b></span>
+            <span>Stomp Glitch <b>+25</b></span>
+            <span>Alpha Star <b>+50 + Shield</b></span>
+            <span>Focus Zone <b>2× Multiplier</b></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Hero Character</span>
+            <h2>Musey</h2>
+          </div>
+          <span class="pill-chip on">Playable</span>
+        </div>
+        <p class="muted">
+          A glowing neural sprite wearing a Muse 2 headband. Its forehead LEDs light up green in your Focus Zone, unlocking <strong>Neural Glide</strong> and an <strong>Orb Magnet Aura</strong>.
+        </p>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Coming Next</span>
+            <h2>Alpha Zen Garden</h2>
+          </div>
+          <span class="pill-chip">Roadmap</span>
+        </div>
+        <p class="muted">
+          Grow luminous botanical sculptures and calm water ripples by sustaining deep Alpha &amp; Theta relaxation waves.
+        </p>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Coming Next</span>
+            <h2>Blink Breakout</h2>
+          </div>
+          <span class="pill-chip">Roadmap</span>
+        </div>
+        <p class="muted">
+          Steer a neuro-paddle with Head Gyro and trigger power-shots with Double Blinks to shatter brick formations.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <!-- TAB 2: BCI CONTROLS -->
+  <main class="container tab-panel hidden" id="panel-bci">
+    <div class="bento-grid">
+      <section class="card span-2">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Gesture Automation</span>
+            <h2>BCI Trigger Rules</h2>
+          </div>
+          <div class="controls">
+            <span class="muted" id="bci-caps">Checking desktop tools...</span>
+            <button id="btn-bci-arm" class="btn danger small">Arm Triggers (SAFE)</button>
+          </div>
+        </div>
+
+        <div class="rule-form">
+          <select id="bci-trigger">
+            <option value="double_blink">Double Blink</option>
+            <option value="blink">Single Blink</option>
+            <option value="jaw_clench">Jaw Clench</option>
+            <option value="head_tilt_left">Head Tilt Left</option>
+            <option value="head_tilt_right">Head Tilt Right</option>
+          </select>
+          <select id="bci-action">
+            <option value="osc">OSC Message</option>
+            <option value="media_play_pause">Media Play/Pause</option>
+            <option value="media_next">Media Next Track</option>
+            <option value="keystroke">Keystroke (xdotool)</option>
+            <option value="webhook">HTTP Webhook POST</option>
+          </select>
+          <input id="bci-target" type="text" placeholder="Target (/bci/cue, space, https://...)" />
+          <input id="bci-cooldown" type="number" step="0.5" min="0.5" value="1.5" style="width:76px" title="Cooldown seconds" />
+          <button id="btn-bci-add" class="btn primary small">Add Rule</button>
+        </div>
+
+        <ul class="clean-list tall" id="bci-rules-list"></ul>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Audit Trail</span>
+            <h2>Trigger Log</h2>
+          </div>
+        </div>
+        <ul class="clean-list tall" id="bci-history"></ul>
+      </section>
+    </div>
+  </main>
+
+  <!-- TAB 3: OSC BRIDGE -->
+  <main class="container tab-panel hidden" id="panel-osc">
+    <div class="bento-grid">
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">UDP · OSC 1.0</span>
+            <h2>OSC Broadcaster</h2>
+          </div>
+          <span class="pill-chip" id="osc-status-badge">Stopped</span>
+        </div>
+        <p class="muted">
+          Stream live EEG, band powers, BPM, IMU, ML state, and BCI events to
+          <strong>MuseLab, TouchDesigner, Ableton Live, Unity, Godot, or Max/MSP</strong>.
+        </p>
+        <div class="form-col">
+          <label class="field-lbl">Target Host</label>
+          <input id="osc-host" type="text" value="127.0.0.1" />
+          <label class="field-lbl">UDP Port</label>
+          <input id="osc-port" type="number" value="5000" min="1" max="65535" />
+          <div class="controls" style="margin-top:8px">
+            <button id="btn-osc-toggle" class="btn primary">Start OSC Stream</button>
+            <span class="muted mono" id="osc-packets">0 packets</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card span-2">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Schema</span>
+            <h2>OSC Address Reference</h2>
+          </div>
+        </div>
+        <pre class="code-box">/muse/eeg                         float TP9, AF7, AF8, TP10 (µV)
+/muse/elements/delta_relative     float 0.0..1.0
+/muse/elements/theta_relative     float 0.0..1.0
+/muse/elements/alpha_relative     float 0.0..1.0
+/muse/elements/beta_relative      float 0.0..1.0
+/muse/elements/gamma_relative     float 0.0..1.0
+/muse/metrics/focus               float 0.0..1.0
+/muse/metrics/calm                float 0.0..1.0
+/muse/ppg/bpm                     float BPM
+/muse/acc                         float x, y, z (g)
+/muse/gyro                        float x, y, z (deg/s)
+/muse/elements/blink              int 1
+/muse/elements/double_blink       int 1
+/muse/elements/jaw_clench         int 1
+/muse/elements/head_tilt_left     int 1
+/muse/elements/head_tilt_right    int 1
+/muse/ml/state                    string label, float confidence</pre>
+      </section>
+    </div>
+  </main>
+
+  <!-- TAB 4: PERSONAL ML LAB -->
+  <main class="container tab-panel hidden" id="panel-ml">
+    <div class="bento-grid">
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">24-Feature EEG Classifier</span>
+            <h2>Training Dataset</h2>
+          </div>
+        </div>
+        <p class="muted">
+          Enter a mental state (e.g. <em>Deep Work</em>, <em>Meditation</em>, <em>Eyes Closed</em>), capture 5–10 samples per state, and train your personal model.
+        </p>
+        <div class="input-group">
+          <input id="ml-label" type="text" value="Relaxed" placeholder="State label" />
+          <button id="btn-ml-capture" class="btn primary small">Capture</button>
+          <button id="btn-ml-burst" class="btn tonal small">Auto 5x</button>
+        </div>
+        <div class="controls">
+          <button id="btn-ml-train" class="btn primary">Train Personal Model</button>
+          <button id="btn-ml-clear" class="btn tonal danger-text small">Clear</button>
+        </div>
+        <div class="muted" id="ml-dataset-summary">Dataset: 0 samples</div>
+        <ul class="clean-list" id="ml-counts-list"></ul>
+      </section>
+
+      <section class="card span-2">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Live Inference</span>
+            <h2>Predicted Mental State</h2>
+          </div>
+          <span class="pill-chip" id="ml-accuracy-badge">Not Trained</span>
+        </div>
+        <div class="ml-hero">
+          <div class="ml-pred-label" id="ml-pred-label">Awaiting Trained Model</div>
+          <div class="muted" id="ml-pred-conf">Collect at least 2 states and train to begin live inference</div>
+        </div>
+        <div class="bands" id="ml-probs-container"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/static/app.js"></script>
+  <script src="/static/game.js"></script>
+</body>
+</html>

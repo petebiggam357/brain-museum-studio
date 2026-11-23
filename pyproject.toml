@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brain-museum-studio"
+version = "0.0.1-alpha"
+description = "Brain Museum Studio — Cross-platform (Linux-first) real-time Muse 2 EEG/PPG dashboard, BCI trigger engine, OSC bridge, and personal ML lab"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "bleak>=0.22.0",
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "websockets>=13.0",
+    "numpy>=1.26.0",
+]
+
+[project.scripts]
+brain-museum-studio = "muse2_studio.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["muse2_studio*"]
