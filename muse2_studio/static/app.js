@@ -1098,6 +1098,7 @@
       }
       for (const f of frame.bci_fired || []) prependBciHistory(f);
       if (window.BrainMuseumGame) window.BrainMuseumGame.onFrame(frame);
+      if (window.BrainMuseumMeditation) window.BrainMuseumMeditation.onFrame(frame);
 
       // Update Neuro Lab telemetry
       if (frame.lab) {

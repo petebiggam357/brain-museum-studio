@@ -41,6 +41,10 @@
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="4"/></svg>
         <span>Games</span>
       </button>
+      <button class="seg-tab" data-tab="meditation" role="tab">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <span>Meditation</span>
+      </button>
       <button class="seg-tab" data-tab="bci" role="tab">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         <span>BCI</span>
@@ -502,6 +506,87 @@
     </div>
   </main>
 
+  <!-- TAB: MEDITATION ROOM (Binaural Beats + Fullscreen Zen Sanctuary) -->
+  <main class="container tab-panel hidden" id="panel-meditation">
+    <div class="bento-grid">
+      <section class="card span-3">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Stereo Binaural Entrainment · Use Headphones</span>
+            <h2>Zen Meditation Room</h2>
+          </div>
+          <div class="controls">
+            <div class="filter-pill">
+              <span class="muted">State</span>
+              <select id="sel-med-preset" class="ghost-sel">
+                <option value="delta">Delta · 2.5 Hz (Deep Rest)</option>
+                <option value="theta" selected>Theta · 6.0 Hz (Meditation)</option>
+                <option value="schumann">Schumann · 7.83 Hz (Grounding)</option>
+                <option value="alpha">Alpha · 10.0 Hz (Calm Flow)</option>
+                <option value="gamma">Gamma · 40.0 Hz (Lucid Clarity)</option>
+              </select>
+            </div>
+            <div class="filter-pill">
+              <span class="muted">Scene</span>
+              <select id="sel-med-scene" class="ghost-sel">
+                <option value="aurora" selected>Aurora Cosmos</option>
+                <option value="pond">Kyoto Moon Pond</option>
+                <option value="mandala">Breathing Mandala</option>
+                <option value="mountain">Misty Mountain Dawn</option>
+              </select>
+            </div>
+            <div class="filter-pill">
+              <span class="muted">Breath</span>
+              <select id="sel-med-breath" class="ghost-sel">
+                <option value="box" selected>Box (4-4-4-4)</option>
+                <option value="478">Relax (4-7-8)</option>
+                <option value="off">Off</option>
+              </select>
+            </div>
+            <div class="filter-pill">
+              <span class="muted">Timer</span>
+              <select id="sel-med-timer" class="ghost-sel">
+                <option value="300">5 min</option>
+                <option value="600" selected>10 min</option>
+                <option value="900">15 min</option>
+                <option value="1200">20 min</option>
+                <option value="0">Open</option>
+              </select>
+            </div>
+            <button id="btn-med-play" class="btn primary small">Start Meditation</button>
+            <button id="btn-med-bell" class="btn tonal small" title="Ring Tibetan singing bowl">Bell</button>
+            <button id="btn-med-fullscreen" class="btn tonal small">Fullscreen</button>
+          </div>
+        </div>
+
+        <div class="med-stage" id="med-stage">
+          <canvas id="med-canvas"></canvas>
+          <div class="med-hud-top">
+            <span class="med-glass-pill mono" id="med-bio-readout">Calm -- · THETA --%</span>
+            <div class="controls">
+              <span class="med-glass-pill mono" id="med-timer-readout">10:00</span>
+              <button id="btn-med-exit-full" class="btn tonal small hidden">Exit Fullscreen</button>
+            </div>
+          </div>
+          <div class="med-hud-bottom">
+            <div class="med-breath-label" id="med-breath-prompt">Breathe Naturally</div>
+            <div class="med-freq-sub mono" id="med-freq-readout">L 180 Hz · R 186 Hz (6 Hz beat)</div>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="controls">
+            <span class="muted">Binaural Beats</span>
+            <input id="rng-med-binaural" type="range" min="0" max="1" step="0.05" value="0.30" style="width:100px" />
+            <span class="muted">Ocean &amp; Singing Bowl</span>
+            <input id="rng-med-ambient" type="range" min="0" max="1" step="0.05" value="0.28" style="width:100px" />
+          </div>
+          <span class="muted">Tip: Wear stereo headphones for true binaural beat entrainment · Singing bowl swells with Calm</span>
+        </div>
+      </section>
+    </div>
+  </main>
+
   <!-- TAB 2: BCI CONTROLS -->
   <main class="container tab-panel hidden" id="panel-bci">
     <div class="bento-grid">
@@ -768,5 +853,6 @@
 
   <script src="/static/app.js"></script>
   <script src="/static/game.js"></script>
+  <script src="/static/meditation.js"></script>
 </body>
 </html>
