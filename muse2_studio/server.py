@@ -20,6 +20,7 @@ from .device import MuseDeviceManager
 from .dsp import SignalProcessor
 from .ml import PersonalStateClassifier
 from .neuro_lab import NeuroLabEngine
+from .profiles import ProfileManager
 from .recorder import SessionRecorder
 
 if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
@@ -40,7 +41,13 @@ recorder = SessionRecorder(RECORDINGS_DIR)
 osc_bridge = OSCBridge()
 bci_engine = BCIEngine(CONFIG_DIR / "bci_rules.json", osc_bridge=osc_bridge)
 ml_classifier = PersonalStateClassifier(MODELS_DIR)
+profile_manager = ProfileManager(CONFIG_DIR / "profiles.json")
 neuro_lab = NeuroLabEngine()
+_active_prof = profile_manager.active()
+neuro_lab.focus_baseline = float(_active_prof["focus_baseline"])
+neuro_lab.calm_baseline = float(_active_prof["calm_baseline"])
+neuro_lab.focus_threshold = float(_active_prof["focus_threshold"])
+neuro_lab.calibrated = bool(_active_prof["calibrated"])
 device = MuseDeviceManager(dsp=dsp, on_eeg_raw=recorder.write_eeg)
 
 ws_clients: Set[WebSocket] = set()
@@ -116,6 +123,21 @@ class LabTypeRequest(BaseModel):
     text: str
 
 
+class ProfileCreateRequest(BaseModel):
+    name: str
+
+
+class ProfileSelectRequest(BaseModel):
+    profile_id: str
+
+
+class ProfileCalibrateRequest(BaseModel):
+    focus_baseline: float
+    calm_baseline: float
+    focus_threshold: float
+    neutral_tilt: float = 0.0
+
+
 async def _broadcast_loop() -> None:
     """Broadcast ~20 FPS telemetry frames, run BCI rules, ML inference, Neuro Lab, and OSC bridge."""
     while True:
@@ -176,7 +198,7 @@ async def lifespan(_app: FastAPI):
         await device.disconnect()
 
 
-app = FastAPI(title="Brain Museum Studio", version="0.0.6", lifespan=lifespan)
+app = FastAPI(title="Brain Museum Studio", version="0.0.7", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -195,6 +217,7 @@ async def api_status() -> Dict[str, Any]:
         "bci": bci_engine.status(),
         "ml": ml_classifier.status(),
         "lab": neuro_lab.status(),
+        "profiles": profile_manager.status(),
     }
 
 
@@ -385,6 +408,52 @@ async def api_lab_click(req: LabClickRequest) -> Dict[str, Any]:
 @app.post("/api/lab/type")
 async def api_lab_type(req: LabTypeRequest) -> Dict[str, Any]:
     return neuro_lab.trigger_os_type(req.text)
+
+
+# --- Multi-User Brain Profiles & Guided Calibration ---
+def _apply_active_profile() -> None:
+    p = profile_manager.active()
+    neuro_lab.focus_baseline = float(p["focus_baseline"])
+    neuro_lab.calm_baseline = float(p["calm_baseline"])
+    neuro_lab.focus_threshold = float(p["focus_threshold"])
+    neuro_lab.calibrated = bool(p["calibrated"])
+
+
+@app.get("/api/profiles")
+async def api_profiles() -> Dict[str, Any]:
+    return profile_manager.status()
+
+
+@app.post("/api/profiles/create")
+async def api_profiles_create(req: ProfileCreateRequest) -> Dict[str, Any]:
+    try:
+        st = profile_manager.create(req.name)
+        _apply_active_profile()
+        return st
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/profiles/select")
+async def api_profiles_select(req: ProfileSelectRequest) -> Dict[str, Any]:
+    try:
+        st = profile_manager.select(req.profile_id)
+        _apply_active_profile()
+        return st
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/profiles/calibrate")
+async def api_profiles_calibrate(req: ProfileCalibrateRequest) -> Dict[str, Any]:
+    st = profile_manager.update_calibration(
+        focus_baseline=req.focus_baseline,
+        calm_baseline=req.calm_baseline,
+        focus_threshold=req.focus_threshold,
+        neutral_tilt=req.neutral_tilt,
+    )
+    _apply_active_profile()
+    return st
 
 
 # --- WebSocket ---

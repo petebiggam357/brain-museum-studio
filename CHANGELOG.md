@@ -2,6 +2,16 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
+## `v0.0.7` — Interactive 3D Brain Visualizer, Guided Calibration Wizard, Multi-User Profiles & Ultra-Fast Boot
+
+### New
+- **3D Interactive Brain Tab (`brain3d.js`):** Real-time 360° rotatable dual-hemisphere holographic cortex showing live regional firing (`AF7`, `AF8`, `TP9`, `TP10`) by frequency band, animated **3D neural coherence arcs** showing brain regions talking to each other, **Frontal Alpha Asymmetry (`AF8 − AF7`)** balance gauge, and a **Scrolling Live Spectrogram Heatmap** (`1–45 Hz`).
+- **4-Step Guided Calibration Wizard & Multi-User Brain Profiles (`profiles.py`, `studio_extras.js`):** Switch or create profiles in the top bar and run a guided Fit Check → 8s Calm Baseline → 8s Focus Baseline → Head Center setup persisted to `config/profiles.json`.
+- **Neuro-Pomodoro Deep Work Sprint Timer:** 15/25/45-minute work sprint timer with live EEG Deep Work Focus Score.
+
+### Performance
+- **Zero-SciPy Pure-NumPy Biquad Filters (`dsp.py`):** Replaced heavy `scipy.signal` import with exact stateful biquad Notch & 1–45 Hz Bandpass filters and excluded `scipy`/`matplotlib`/`pytest` from PyInstaller bundles — shrinking AppImage size by ~70 MB and making startup noticeably faster!
+
 ## `v0.0.6` — 6-Game Brain Museum Arcade, Graphics Overhaul & Instant-Start AppImage
 
 ### New

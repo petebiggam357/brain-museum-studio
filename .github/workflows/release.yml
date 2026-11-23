@@ -81,6 +81,9 @@ jobs:
             --hidden-import uvicorn.protocols.http.auto \
             --hidden-import uvicorn.protocols.websockets.auto \
             --hidden-import uvicorn.lifespan.on \
+            --exclude-module scipy \
+            --exclude-module matplotlib \
+            --exclude-module pytest \
             ${{ matrix.extra_pyi_flags }} \
             muse2_studio/cli.py
       - name: Package archive (Unix)

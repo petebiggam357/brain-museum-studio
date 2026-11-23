@@ -89,15 +89,15 @@ def _find_free_port(preferred: int) -> int:
         return int(s.getsockname()[1])
 
 
-def _wait_for_server(url: str, timeout: float = 10.0) -> bool:
+def _wait_for_server(url: str, timeout: float = 8.0) -> bool:
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(f"{url}/api/status", timeout=0.5) as r:
+            with urllib.request.urlopen(f"{url}/api/status", timeout=0.25) as r:
                 if r.status == 200:
                     return True
         except Exception:
-            time.sleep(0.1)
+            time.sleep(0.02)
     return False
 
 

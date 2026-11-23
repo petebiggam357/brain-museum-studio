@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brain-museum-studio"
-version = "0.0.6"
-description = "Brain Museum Studio — Cross-platform (Linux-first) real-time Muse 2 EEG/PPG dashboard, BCI trigger engine, OSC bridge, and personal ML lab"
+version = "0.0.7"
+description = "Brain Museum Studio — Cross-platform (Linux-first) real-time Muse 2 EEG/PPG dashboard, 3D Brain visualizer, Neuro Lab, 6 mind-controlled games, Zen Meditation, BCI, OSC & ML"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -14,7 +14,6 @@ dependencies = [
     "uvicorn[standard]>=0.30.0",
     "websockets>=13.0",
     "numpy>=1.26.0",
-    "scipy>=1.11.0",
 ]
 
 [project.optional-dependencies]

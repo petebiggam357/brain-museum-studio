@@ -33,6 +33,10 @@
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         <span>Monitor</span>
       </button>
+      <button class="seg-tab" data-tab="brain3d" role="tab">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a14.5 14.5 0 0 0 0 18 14.5 14.5 0 0 0 0-18"/><path d="M3 12h18"/></svg>
+        <span>3D Brain</span>
+      </button>
       <button class="seg-tab" data-tab="lab" role="tab">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 9V3"/><path d="M14 9V3"/><path d="M10 9 4.5 18.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.5L14 9"/></svg>
         <span>Neuro Lab</span>
@@ -62,6 +66,11 @@
     </nav>
 
     <div class="controls">
+      <select id="sel-profile" class="small-sel" title="Active Brain Profile">
+        <option value="default">Default Profile</option>
+      </select>
+      <button id="btn-new-profile" class="btn icon-btn tonal" title="Create New Brain Profile">+</button>
+      <button id="btn-open-wizard" class="btn tonal small" title="Run 4-Step Guided Brain Calibration Wizard">Calibrate</button>
       <button id="btn-scan" class="btn tonal">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg>
         <span>Scan</span>
@@ -269,6 +278,90 @@
           <button id="btn-record" class="btn primary small">Record</button>
         </div>
         <ul class="clean-list" id="rec-list"></ul>
+      </section>
+    </div>
+  </main>
+
+  <!-- TAB: 3D BRAIN (Interactive Holographic Cortex, Coherence, Spectrogram & Deep Work) -->
+  <main class="container tab-panel hidden" id="panel-brain3d">
+    <div class="bento-grid">
+      <section class="card span-2">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Live Cortical Firing &amp; Functional Connectivity</span>
+            <h2>3D Interactive Brain</h2>
+          </div>
+          <div class="controls">
+            <div class="filter-pill">
+              <span class="muted">Band</span>
+              <select id="sel-brain3d-band" class="ghost-sel">
+                <option value="dominant" selected>All (Dominant)</option>
+                <option value="alpha">Alpha (8–13 Hz)</option>
+                <option value="beta">Beta (13–30 Hz)</option>
+                <option value="theta">Theta (4–8 Hz)</option>
+                <option value="gamma">Gamma (30–44 Hz)</option>
+                <option value="delta">Delta (1–4 Hz)</option>
+              </select>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="chk-brain3d-orbit" checked /><span>Auto-Orbit</span></label>
+            <label class="toggle-pill"><input type="checkbox" id="chk-brain3d-arcs" checked /><span>Coherence Arcs</span></label>
+          </div>
+        </div>
+        <div class="canvas-shell brain3d-shell">
+          <canvas id="brain3d-canvas"></canvas>
+        </div>
+        <div class="card-footer">
+          <div class="rms-pills" id="brain3d-lobe-summary">
+            <span>AF7 <b>--</b></span><span>AF8 <b>--</b></span><span>TP9 <b>--</b></span><span>TP10 <b>--</b></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Inter-Region Talking</span>
+            <h2>Neural Coherence</h2>
+          </div>
+        </div>
+        <div class="bands" id="brain3d-coh-list"></div>
+
+        <div class="sub-section" style="margin-top:8px">
+          <div class="sub-header"><span>Frontal Alpha Asymmetry</span><span class="muted">AF8 − AF7</span></div>
+          <div class="asym-track"><div class="asym-marker" id="brain3d-asym-fill"></div></div>
+          <div class="muted" id="brain3d-asym-val">Balanced Hemispheres</div>
+        </div>
+
+        <div class="sub-section" style="margin-top:8px">
+          <div class="sub-header"><span>Scrolling Spectrogram</span><span class="muted">1–45 Hz Heatmap</span></div>
+          <div class="canvas-shell spec-shell">
+            <canvas id="spectrogram-canvas"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Neuro-Pomodoro Deep Work Sprint Card -->
+      <section class="card span-3">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Neuro-Tracked Focus Sprint</span>
+            <h2>Neuro-Pomodoro Deep Work</h2>
+          </div>
+          <div class="controls">
+            <div class="filter-pill">
+              <span class="muted">Length</span>
+              <select id="sel-pomo-min" class="ghost-sel">
+                <option value="15">15 min</option>
+                <option value="25" selected>25 min</option>
+                <option value="45">45 min</option>
+              </select>
+            </div>
+            <span class="pill-chip mono" id="pomo-timer">25:00</span>
+            <span class="pill-chip on" id="pomo-score">Deep Work Score: --</span>
+            <span class="muted" id="pomo-status">Idle</span>
+            <button id="btn-pomo-toggle" class="btn primary small">Start Sprint</button>
+          </div>
+        </div>
       </section>
     </div>
   </main>
@@ -957,9 +1050,35 @@
     </div>
   </div>
 
+  <!-- 4-STEP GUIDED CALIBRATION WIZARD MODAL -->
+  <div class="modal-backdrop hidden" id="wizard-modal" role="dialog" aria-modal="true" aria-labelledby="wiz-step-title">
+    <div class="modal-sheet" style="width:min(540px,100%)">
+      <div class="modal-header">
+        <div class="card-title-group">
+          <span class="card-eyebrow">Personal Brain Profile Setup</span>
+          <h2 id="wiz-step-title">Step 1 of 4 · Sensor Fit Check</h2>
+        </div>
+        <button id="btn-wiz-close" class="btn icon-btn tonal" title="Close">✕</button>
+      </div>
+      <div class="cal-bar-wrap"><div class="cal-bar-fill" id="wiz-progress-fill"></div></div>
+      <p class="muted" id="wiz-step-desc" style="font-size:0.9rem;color:var(--text-secondary)">
+        Connect your Muse 2 (or Sim) and adjust the headband until all 4 sensors show green contact.
+      </p>
+      <div class="ml-hero" style="padding:14px">
+        <div class="mono" id="wiz-live-readout" style="font-size:1rem;font-weight:600">Waiting for live signal...</div>
+      </div>
+      <div class="controls" style="justify-content:flex-end">
+        <button id="btn-wiz-skip" class="btn tonal small">Skip</button>
+        <button id="btn-wiz-action" class="btn primary">Continue</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/static/app.js"></script>
   <script src="/static/game.js"></script>
   <script src="/static/games_extra.js"></script>
   <script src="/static/meditation.js"></script>
+  <script src="/static/brain3d.js"></script>
+  <script src="/static/studio_extras.js"></script>
 </body>
 </html>

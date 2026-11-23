@@ -14,6 +14,7 @@ from muse2_studio.bridge import OSCBridge, encode_osc_message
 from muse2_studio.dsp import SignalProcessor
 from muse2_studio.ml import PersonalStateClassifier
 from muse2_studio.neuro_lab import NeuroLabEngine
+from muse2_studio.profiles import ProfileManager
 from muse2_studio.protocol import (
     EEG_SAMPLE_RATE,
     PPG_SAMPLE_RATE,
@@ -190,4 +191,25 @@ def test_neuro_lab_calibration_and_hybrid_cursor() -> None:
     # Recenter works
     lab.recenter_cursor()
     assert lab.cursor_x == 0.5 and lab.cursor_y == 0.5
+
+
+def test_profile_manager_and_coherence(tmp_path: Path) -> None:
+    pm = ProfileManager(tmp_path / "profiles.json")
+    assert pm.active_id == "default"
+    pm.create("Pete")
+    assert pm.active()["name"] == "Pete"
+    pm.update_calibration(focus_baseline=42.0, calm_baseline=55.0, focus_threshold=58.0, neutral_tilt=0.05)
+    assert pm.active()["calibrated"] is True
+    assert pm.active()["focus_threshold"] == 58.0
+
+    # Verify cross-channel coherence on identical signals == 1.0
+    dsp = SignalProcessor()
+    t = np.arange(512) / EEG_SAMPLE_RATE
+    wave = (25.0 * np.sin(2 * math.pi * 10.0 * t)).tolist()
+    for ch in ("TP9", "AF7", "AF8", "TP10"):
+        dsp.push_eeg(ch, wave)
+    frame = dsp.drain_frame()
+    assert frame["coherence"]["AF7-AF8"] > 0.98
+    assert "AF7" in frame["channel_bands"]
+
 

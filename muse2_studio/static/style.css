@@ -388,7 +388,30 @@ select:focus, input:focus {
 .ppg-shell { height: 148px; }
 .lab-shell { height: 260px; }
 .game-shell { height: 390px; }
+.brain3d-shell { height: 430px; cursor: grab; }
+.brain3d-shell:active { cursor: grabbing; }
+.spec-shell { height: 120px; }
 .canvas-shell canvas { width: 100%; height: 100%; display: block; }
+
+.asym-track {
+  position: relative;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--indigo), var(--bg-subtle) 50%, var(--green));
+  border: 1px solid var(--border);
+}
+.asym-marker {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--blue);
+  transition: left 0.18s ease;
+}
 
 .card-footer {
   display: flex;

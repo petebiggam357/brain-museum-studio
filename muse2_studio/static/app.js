@@ -1099,6 +1099,8 @@
       for (const f of frame.bci_fired || []) prependBciHistory(f);
       if (window.BrainMuseumGame) window.BrainMuseumGame.onFrame(frame);
       if (window.BrainMuseumMeditation) window.BrainMuseumMeditation.onFrame(frame);
+      if (window.BrainMuseum3D) window.BrainMuseum3D.onFrame(frame);
+      if (window.BrainMuseumExtras) window.BrainMuseumExtras.onFrame(frame);
 
       // Update Neuro Lab telemetry
       if (frame.lab) {
@@ -1180,6 +1182,7 @@
       if (st.osc) renderOsc(st.osc);
       if (st.ml) renderMlStatus(st.ml);
       if (st.lab) renderLabConfig(st.lab);
+      if (st.profiles && window.BrainMuseumExtras) window.BrainMuseumExtras.initProfiles(st.profiles);
     } catch (_) {}
     refreshRecordings();
     connectWS();

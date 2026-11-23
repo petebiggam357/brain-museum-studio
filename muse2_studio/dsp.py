@@ -1,23 +1,23 @@
-"""Real-time DSP engine for Muse 2 EEG, PPG, and IMU streams.
+"""Real-time DSP engine for Muse 2 EEG, PPG, and IMU streams (Pure NumPy — ultra-fast startup).
 
 Features:
-- Real-time stateful Butterworth Notch (50/60 Hz) & Bandpass (1-45 Hz) filters
-- Band powers (Delta, Theta, Alpha, Beta, Gamma) + 1-45 Hz FFT spectrum
-- Per-channel band features (24-dim vector) for Personal ML state classification
-- Cognitive indices (Focus, Calm) & electrode contact quality
-- Event detection: Blink, Double-Blink, Jaw Clench, Head Tilt Left/Right
+- Stateful pure-NumPy Biquad Notch (50/60 Hz) & Bandpass (1-45 Hz) filters (no heavy SciPy import!)
+- Global & per-channel band powers (Delta, Theta, Alpha, Beta, Gamma) + 1-45 Hz FFT spectrum
+- Real-time cross-channel coherence (AF7-AF8, TP9-TP10, AF7-TP9, AF8-TP10) & Frontal Alpha Asymmetry
+- Per-channel 24-dim feature vector for Personal ML state classification
+- Cognitive indices (Focus, Calm), electrode contact quality, Blink/Double-Blink/Jaw/Head-Tilt detection
 - PPG Heart Rate (BPM) estimation
 """
 
 from __future__ import annotations
 
+import math
 import time
 from collections import deque
 from dataclasses import dataclass
 from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import numpy as np
-from scipy.signal import butter, iirnotch, sosfilt, sosfilt_zi, tf2sos
 
 from .protocol import EEG_CHANNELS, EEG_SAMPLE_RATE, PPG_SAMPLE_RATE
 
@@ -29,59 +29,121 @@ BANDS: Dict[str, Tuple[float, float]] = {
     "gamma": (30.0, 44.0),
 }
 
+COHERENCE_PAIRS: Tuple[Tuple[str, str], ...] = (
+    ("AF7", "AF8"),   # Frontal inter-hemispheric
+    ("TP9", "TP10"),  # Temporal inter-hemispheric
+    ("AF7", "TP9"),   # Left fronto-temporal
+    ("AF8", "TP10"),  # Right fronto-temporal
+    ("AF7", "TP10"),  # Cross-diagonal L-R
+    ("AF8", "TP9"),   # Cross-diagonal R-L
+)
+
 
 @dataclass(slots=True)
 class DetectedEvent:
     timestamp: float
-    kind: str  # "blink" | "double_blink" | "jaw_clench" | "head_tilt_left" | "head_tilt_right" | "marker"
+    kind: str
     label: str
     confidence: float = 1.0
 
 
+class _Biquad:
+    """Direct Form II Transposed stateful IIR biquad filter (pure Python/NumPy, zero SciPy)."""
+
+    __slots__ = ("b0", "b1", "b2", "a1", "a2", "z1", "z2", "_init")
+
+    def __init__(self, b0: float, b1: float, b2: float, a1: float, a2: float) -> None:
+        self.b0 = b0
+        self.b1 = b1
+        self.b2 = b2
+        self.a1 = a1
+        self.a2 = a2
+        self.z1 = 0.0
+        self.z2 = 0.0
+        self._init = False
+
+    def process(self, samples: List[float]) -> List[float]:
+        if not samples:
+            return []
+        b0, b1, b2, a1, a2 = self.b0, self.b1, self.b2, self.a1, self.a2
+        if not self._init:
+            x0 = samples[0]
+            # Steady-state initialization to avoid startup transient jump
+            denom = 1.0 + a1 + a2
+            if abs(denom) > 1e-9:
+                dc_gain = (b0 + b1 + b2) / denom
+                self.z1 = x0 * (b1 + b2 - (a1 + a2) * dc_gain)
+                self.z2 = x0 * (b2 - a2 * dc_gain)
+            self._init = True
+
+        z1, z2 = self.z1, self.z2
+        out = [0.0] * len(samples)
+        for i, x in enumerate(samples):
+            y = b0 * x + z1
+            z1 = b1 * x - a1 * y + z2
+            z2 = b2 * x - a2 * y
+            out[i] = y
+        self.z1, self.z2 = z1, z2
+        return out
+
+
+def _make_notch(fs: float, f0: float, q: float = 30.0) -> _Biquad:
+    w0 = 2.0 * math.pi * f0 / fs
+    alpha = math.sin(w0) / (2.0 * q)
+    cos_w0 = math.cos(w0)
+    a0 = 1.0 + alpha
+    return _Biquad(
+        1.0 / a0,
+        (-2.0 * cos_w0) / a0,
+        1.0 / a0,
+        (-2.0 * cos_w0) / a0,
+        (1.0 - alpha) / a0,
+    )
+
+
+def _make_highpass(fs: float, fc: float, q: float = 0.70710678) -> _Biquad:
+    w0 = 2.0 * math.pi * fc / fs
+    alpha = math.sin(w0) / (2.0 * q)
+    cos_w0 = math.cos(w0)
+    a0 = 1.0 + alpha
+    return _Biquad(
+        ((1.0 + cos_w0) * 0.5) / a0,
+        (-(1.0 + cos_w0)) / a0,
+        ((1.0 + cos_w0) * 0.5) / a0,
+        (-2.0 * cos_w0) / a0,
+        (1.0 - alpha) / a0,
+    )
+
+
+def _make_lowpass(fs: float, fc: float, q: float = 0.70710678) -> _Biquad:
+    w0 = 2.0 * math.pi * fc / fs
+    alpha = math.sin(w0) / (2.0 * q)
+    cos_w0 = math.cos(w0)
+    a0 = 1.0 + alpha
+    return _Biquad(
+        ((1.0 - cos_w0) * 0.5) / a0,
+        (1.0 - cos_w0) / a0,
+        ((1.0 - cos_w0) * 0.5) / a0,
+        (-2.0 * cos_w0) / a0,
+        (1.0 - alpha) / a0,
+    )
+
+
 class _ChannelFilterBank:
-    """Stateful IIR Notch + Bandpass filter bank for one EEG channel."""
+    """Stateful Notch + 1-45 Hz Bandpass biquad cascade for one EEG channel."""
 
     def __init__(self, fs: float, notch_hz: Optional[float], bandpass: bool) -> None:
-        self.fs = fs
-        self.notch_hz = notch_hz
-        self.bandpass = bandpass
-        self._notch_sos: Optional[np.ndarray] = None
-        self._notch_zi: Optional[np.ndarray] = None
-        self._bp_sos: Optional[np.ndarray] = None
-        self._bp_zi: Optional[np.ndarray] = None
-        self._initialized = False
-        self._build()
+        self.stages: List[_Biquad] = []
+        if notch_hz in (50.0, 60.0):
+            self.stages.append(_make_notch(fs, notch_hz, q=30.0))
+        if bandpass:
+            self.stages.append(_make_highpass(fs, 1.0))
+            self.stages.append(_make_lowpass(fs, 45.0))
 
-    def _build(self) -> None:
-        if self.notch_hz in (50.0, 60.0):
-            b, a = iirnotch(self.notch_hz, Q=30.0, fs=self.fs)
-            self._notch_sos = tf2sos(b, a)
-        else:
-            self._notch_sos = None
-
-        if self.bandpass:
-            self._bp_sos = butter(4, [1.0, 45.0], btype="bandpass", fs=self.fs, output="sos")
-        else:
-            self._bp_sos = None
-
-        self._notch_zi = None
-        self._bp_zi = None
-        self._initialized = False
-
-    def process(self, samples: np.ndarray) -> np.ndarray:
-        y = samples.astype(np.float64, copy=True)
-        if not self._initialized and len(y) > 0:
-            x0 = float(y[0])
-            if self._notch_sos is not None:
-                self._notch_zi = sosfilt_zi(self._notch_sos) * x0
-            if self._bp_sos is not None:
-                self._bp_zi = sosfilt_zi(self._bp_sos) * x0
-            self._initialized = True
-
-        if self._notch_sos is not None and self._notch_zi is not None:
-            y, self._notch_zi = sosfilt(self._notch_sos, y, zi=self._notch_zi)
-        if self._bp_sos is not None and self._bp_zi is not None:
-            y, self._bp_zi = sosfilt(self._bp_sos, y, zi=self._bp_zi)
+    def process(self, samples: List[float]) -> List[float]:
+        y = samples
+        for stage in self.stages:
+            y = stage.process(y)
         return y
 
 
@@ -98,7 +160,7 @@ class SignalProcessor:
         self.eeg_len = int(eeg_window_sec * self.eeg_fs)  # 512 samples
         self.ppg_len = int(ppg_window_sec * self.ppg_fs)  # 512 samples
 
-        self.notch_hz: Optional[float] = 60.0  # 60.0, 50.0, or None
+        self.notch_hz: Optional[float] = 60.0
         self.bandpass_enabled: bool = True
 
         self._filters: Dict[str, _ChannelFilterBank] = {}
@@ -126,7 +188,6 @@ class SignalProcessor:
         self._last_tilt_ts: float = 0.0
         self._events: List[DetectedEvent] = []
 
-        # Precompute FFT window and frequency bins for 512-sample EEG buffer
         self._hann = np.hanning(self.eeg_len)
         self._freqs = np.fft.rfftfreq(self.eeg_len, d=1.0 / self.eeg_fs)
         self._band_masks = {
@@ -135,6 +196,9 @@ class SignalProcessor:
         }
         self._last_spectrum: List[float] = [0.0] * 45
         self._last_feature_vec: Optional[List[float]] = None
+        self._last_channel_bands: Dict[str, Dict[str, float]] = {}
+        self._last_coherence: Dict[str, float] = {}
+        self._last_asymmetry: float = 0.0
 
     def _rebuild_filters(self) -> None:
         self._filters = {
@@ -156,10 +220,7 @@ class SignalProcessor:
         return self.filter_config()
 
     def filter_config(self) -> Dict[str, Any]:
-        return {
-            "notch_hz": self.notch_hz,
-            "bandpass": self.bandpass_enabled,
-        }
+        return {"notch_hz": self.notch_hz, "bandpass": self.bandpass_enabled}
 
     def reset(self) -> None:
         for ch in EEG_CHANNELS:
@@ -172,17 +233,18 @@ class SignalProcessor:
         self._battery_pct = None
         self._last_spectrum = [0.0] * 45
         self._last_feature_vec = None
+        self._last_channel_bands = {}
+        self._last_coherence = {}
+        self._last_asymmetry = 0.0
         self._rebuild_filters()
 
     def push_eeg(self, channel: str, samples: List[float], ts: Optional[float] = None) -> None:
         if channel not in self._eeg_buffers:
             return
         now = ts if ts is not None else time.time()
-        raw_arr = np.asarray(samples, dtype=np.float64)
         self._eeg_raw_buffers[channel].extend(samples)
 
-        filtered = self._filters[channel].process(raw_arr)
-        filt_list = filtered.tolist()
+        filt_list = self._filters[channel].process(samples)
         self._eeg_buffers[channel].extend(filt_list)
         self._eeg_pending[channel].extend(filt_list)
 
@@ -191,7 +253,7 @@ class SignalProcessor:
             buf = self._eeg_raw_buffers[channel]
             if len(buf) >= 48:
                 baseline = float(np.median(list(buf)[-48:]))
-                peak_dev = float(np.max(np.abs(raw_arr - baseline)))
+                peak_dev = max(abs(v - baseline) for v in samples)
                 if 135.0 < peak_dev < 850.0:
                     gap = now - self._prev_blink_ts
                     self._prev_blink_ts = self._last_blink_ts
@@ -204,7 +266,6 @@ class SignalProcessor:
                             confidence=min(1.0, peak_dev / 260.0),
                         )
                     )
-                    # Double-blink if two blinks happen within 0.35s..0.95s
                     if 0.30 <= gap <= 0.95 and (now - self._last_double_blink_ts) > 1.2:
                         self._last_double_blink_ts = now
                         self._events.append(
@@ -226,9 +287,8 @@ class SignalProcessor:
         if not samples:
             return
         self._accel = samples[-1]
-        ax, ay, _az = self._accel
+        _ax, ay, _az = self._accel
         now = time.time()
-        # Head tilt gesture detection (lateral roll on X/Y > 0.42g with 1.5s cooldown)
         if (now - self._last_tilt_ts) > 1.5:
             if ay > 0.42:
                 self._last_tilt_ts = now
@@ -249,10 +309,11 @@ class SignalProcessor:
         self._battery_pct = battery_pct
 
     def compute_band_powers(self) -> Dict[str, Dict[str, float]]:
-        """Return absolute (log10 uV^2/Hz) & relative (%) band powers, plus FFT spectrum & ML features."""
+        """Compute band powers, per-channel bands, FFT spectrum, cross-channel coherence, & ML features."""
         abs_acc = {b: [] for b in BANDS}
         rel_acc = {b: [] for b in BANDS}
         per_channel_rel: Dict[str, Dict[str, float]] = {}
+        channel_sigs: Dict[str, np.ndarray] = {}
         high_emg_power: List[float] = []
         psd_stack: List[np.ndarray] = []
 
@@ -262,6 +323,7 @@ class SignalProcessor:
                 continue
             sig = np.asarray(buf, dtype=np.float64)
             sig = sig - np.mean(sig)
+            channel_sigs[ch] = sig
             spec = np.abs(np.fft.rfft(sig * self._hann)) ** 2
             psd = spec / (self.eeg_fs * np.sum(self._hann**2))
             psd_stack.append(psd)
@@ -276,14 +338,14 @@ class SignalProcessor:
                 abs_acc[bname].append(float(np.log10(bp)))
                 rel_pct = 100.0 * bp / total_power
                 rel_acc[bname].append(rel_pct)
-                ch_rel[bname] = rel_pct
+                ch_rel[bname] = round(rel_pct, 1)
             per_channel_rel[ch] = ch_rel
 
             if ch in ("TP9", "TP10"):
                 emg_mask = (self._freqs >= 35.0) & (self._freqs <= 55.0)
                 high_emg_power.append(float(np.mean(psd[emg_mask])))
 
-        # Update 1-45 Hz binned FFT spectrum (log10 PSD)
+        # Update 1-45 Hz binned FFT spectrum
         if psd_stack:
             mean_psd = np.mean(psd_stack, axis=0)
             bins: List[float] = []
@@ -293,7 +355,23 @@ class SignalProcessor:
                 bins.append(round(float(np.log10(val + 1e-12)), 3))
             self._last_spectrum = bins
 
-        # Jaw clench detection (high-frequency EMG burst on temporal channels)
+        # Cross-channel functional connectivity (normalized |Pearson r| over recent 1s window)
+        coh: Dict[str, float] = {}
+        for c1, c2 in COHERENCE_PAIRS:
+            if c1 in channel_sigs and c2 in channel_sigs:
+                s1 = channel_sigs[c1][-256:]
+                s2 = channel_sigs[c2][-256:]
+                denom = float(np.linalg.norm(s1) * np.linalg.norm(s2)) + 1e-12
+                corr = abs(float(np.dot(s1, s2)) / denom)
+                coh[f"{c1}-{c2}"] = round(min(1.0, max(0.0, corr)), 3)
+        self._last_coherence = coh
+        self._last_channel_bands = per_channel_rel
+
+        # Frontal Alpha Asymmetry (AF8 - AF7, positive = right alpha > left alpha / approach valence)
+        if "AF7" in per_channel_rel and "AF8" in per_channel_rel:
+            self._last_asymmetry = round(per_channel_rel["AF8"]["alpha"] - per_channel_rel["AF7"]["alpha"], 1)
+
+        # Jaw clench detection
         now = time.time()
         if high_emg_power and (now - self._last_jaw_ts) > 1.2:
             mean_emg = float(np.mean(high_emg_power))
@@ -315,7 +393,6 @@ class SignalProcessor:
         rel_mean = {b: round(float(np.mean(v)), 1) for b, v in rel_acc.items()}
         abs_mean = {b: round(float(np.mean(v)), 3) for b, v in abs_acc.items()}
 
-        # Build 24-dim feature vector for Personal ML classifier if all 4 channels are ready
         if len(per_channel_rel) == len(EEG_CHANNELS):
             vec: List[float] = []
             for ch in EEG_CHANNELS:
@@ -334,7 +411,6 @@ class SignalProcessor:
         return self._last_feature_vec
 
     def compute_signal_quality(self) -> Dict[str, int]:
-        """Estimate electrode fit quality per channel: 2=Good, 1=Fair, 0=Poor."""
         quality: Dict[str, int] = {}
         for ch in EEG_CHANNELS:
             buf = self._eeg_buffers[ch]
@@ -363,7 +439,6 @@ class SignalProcessor:
         return rms
 
     def compute_heart_rate_bpm(self) -> Optional[float]:
-        """Estimate heart rate (BPM) from the 8-second PPG IR ring buffer."""
         if len(self._ppg_ir) < int(4.0 * self.ppg_fs):
             return None
 
@@ -405,7 +480,6 @@ class SignalProcessor:
         return round(bpm, 1)
 
     def drain_frame(self) -> Dict[str, Any]:
-        """Pop pending waveform chunks and compute current snapshot for WebSocket streaming."""
         eeg_chunks: Dict[str, List[float]] = {}
         for ch in EEG_CHANNELS:
             raw = self._eeg_pending[ch]
@@ -447,6 +521,9 @@ class SignalProcessor:
             "eeg": eeg_chunks,
             "ppg": ppg_chunk,
             "bands": bands,
+            "channel_bands": self._last_channel_bands,
+            "coherence": self._last_coherence,
+            "asymmetry": self._last_asymmetry,
             "spectrum": self._last_spectrum,
             "filters": self.filter_config(),
             "metrics": {
