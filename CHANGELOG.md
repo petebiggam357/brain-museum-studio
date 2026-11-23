@@ -2,7 +2,7 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
-## `v0.0.1-alpha` (Pre-Release)
+## `v0.0.1` — First Public Release
 
 ### Highlights
 - **Native Linux & Cross-Platform Muse 2 BLE Driver (`bleak`):** Direct Bluetooth LE streaming for 4-channel EEG (256 Hz: `TP9`, `AF7`, `AF8`, `TP10`), 64 Hz optical PPG, 52 Hz Accelerometer/Gyroscope, and Battery telemetry, plus a built-in realistic **Simulator Mode**.
