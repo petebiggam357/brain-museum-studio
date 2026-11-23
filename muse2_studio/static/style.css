@@ -649,3 +649,97 @@ select:focus, input:focus {
   border-color: var(--green);
   transform: scale(1.12);
 }
+
+/* Interactive Help Modal Sheet (Apple Frosted Glass) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.56);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.modal-sheet {
+  width: min(820px, 100%);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 24px;
+  border-radius: 22px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.48);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.help-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-body {
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.help-section h3 {
+  margin: 0 0 10px;
+  font-size: 1.02rem;
+  letter-spacing: -0.015em;
+}
+.help-section h4 {
+  margin: 14px 0 6px;
+  font-size: 0.9rem;
+}
+.help-section code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--blue);
+}
+.guide-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.87rem;
+  color: var(--text-secondary);
+}
+.guide-steps strong, .guide-steps b { color: var(--text); }
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+@media (max-width: 680px) {
+  .guide-grid { grid-template-columns: 1fr; }
+}
+.guide-card {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  font-size: 0.82rem;
+}
+.guide-card strong { display: block; margin-bottom: 4px; color: var(--text); }
+.guide-card p { margin: 0; color: var(--text-secondary); }

@@ -25,6 +25,9 @@
     btnSim: document.getElementById("btn-sim"),
     btnDisconnect: document.getElementById("btn-disconnect"),
     btnTheme: document.getElementById("btn-theme"),
+    btnHelp: document.getElementById("btn-help"),
+    btnHelpClose: document.getElementById("btn-help-close"),
+    helpModal: document.getElementById("help-modal"),
     icoSun: document.getElementById("ico-sun"),
     icoMoon: document.getElementById("ico-moon"),
     simBar: document.getElementById("sim-bar"),
@@ -308,6 +311,37 @@
   el.btnTheme.addEventListener("click", () => {
     const curr = document.documentElement.getAttribute("data-theme");
     applyTheme(curr === "dark" ? "light" : "dark");
+  });
+
+  // Interactive Help Center Modal
+  function openHelp(section = null) {
+    el.helpModal.classList.remove("hidden");
+    if (section) {
+      document.querySelectorAll("#help-tabs .chip").forEach((c) => {
+        c.classList.toggle("active", c.dataset.help === section);
+      });
+      document.querySelectorAll(".help-section").forEach((s) => {
+        s.classList.toggle("hidden", s.dataset.helpPanel !== section);
+      });
+    }
+  }
+  function closeHelp() {
+    el.helpModal.classList.add("hidden");
+  }
+  el.btnHelp?.addEventListener("click", () => {
+    const activeTab = document.querySelector(".seg-tab.active")?.dataset.tab;
+    const map = { monitor: "monitor", lab: "lab", games: "games", bci: "bci-osc", osc: "bci-osc", ml: "ml" };
+    openHelp(map[activeTab] || "quickstart");
+  });
+  el.btnHelpClose?.addEventListener("click", closeHelp);
+  el.helpModal?.addEventListener("click", (e) => {
+    if (e.target === el.helpModal) closeHelp();
+  });
+  document.querySelectorAll("#help-tabs .chip").forEach((chip) => {
+    chip.addEventListener("click", () => openHelp(chip.dataset.help));
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !el.helpModal.classList.contains("hidden")) closeHelp();
   });
 
   function cssVar(name) {

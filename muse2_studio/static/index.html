@@ -76,6 +76,9 @@
         <svg id="ico-sun" class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
         <svg id="ico-moon" class="ico hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
       </button>
+      <button id="btn-help" class="btn icon-btn tonal" title="Help &amp; User Guide">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </button>
     </div>
   </header>
 
@@ -629,6 +632,115 @@
       </section>
     </div>
   </main>
+
+  <!-- INTERACTIVE HELP & USER GUIDE MODAL -->
+  <div class="modal-backdrop hidden" id="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="card-title-group">
+          <span class="card-eyebrow">Brain Museum Studio · User Guide</span>
+          <h2 id="help-title">How to Use Everything</h2>
+        </div>
+        <button id="btn-help-close" class="btn icon-btn tonal" title="Close Help">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="help-tabs" id="help-tabs">
+        <button class="chip active" data-help="quickstart">Quick Start</button>
+        <button class="chip" data-help="monitor">Brainwaves &amp; Monitor</button>
+        <button class="chip" data-help="lab">Neuro Lab</button>
+        <button class="chip" data-help="games">Games</button>
+        <button class="chip" data-help="bci-osc">BCI &amp; OSC</button>
+        <button class="chip" data-help="ml">Personal ML</button>
+        <button class="chip" data-help="tips">Troubleshooting</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Quick Start -->
+        <section class="help-section" data-help-panel="quickstart">
+          <h3>Getting Started in 60 Seconds</h3>
+          <ol class="guide-steps">
+            <li><strong>Connect your Muse 2:</strong> Power on the headband (white LEDs pulsing). Click <b>Scan</b> in the top bar, choose your <code>Muse-XXXX</code> device, and click <b>Connect</b>. The button turns green (<b>Connected</b>) once live packets flow.</li>
+            <li><strong>Check your Sensor Fit:</strong> Look at the four pills (<code>TP9</code>, <code>AF7</code>, <code>AF8</code>, <code>TP10</code>) on the Neural Waveform card. <b>Green</b> = good contact, <b>Amber</b> = fair, <b>Red</b> = adjust the headband behind your ears and across your forehead (a tiny drop of water on the forehead sensors helps!).</li>
+            <li><strong>Try Simulator Mode Anytime:</strong> Click <b>Sim</b> to test Calm, Focus, Drowsy, Blinks, Jaw Clenches, Neuro Lab, and Games without wearing the headset.</li>
+            <li><strong>Switch Themes:</strong> Click the Sun/Moon icon in the top-right to switch between Apple Obsidian Dark and Porcelain Light modes.</li>
+          </ol>
+        </section>
+
+        <!-- Monitor & Brainwaves -->
+        <section class="help-section hidden" data-help-panel="monitor">
+          <h3>Understanding Your Brainwaves</h3>
+          <div class="guide-grid">
+            <div class="guide-card"><strong>Delta (1–4 Hz)</strong><p>Deep sleep, recovery, and slow-wave rest. High spikes while awake usually mean movement or blink artifacts.</p></div>
+            <div class="guide-card"><strong>Theta (4–8 Hz)</strong><p>Deep meditation, creative daydreaming, drowsiness, and inward flow.</p></div>
+            <div class="guide-card"><strong>Alpha (8–13 Hz)</strong><p>Calm, relaxed wakefulness. Try closing your eyes for 5 seconds — you’ll see your green Alpha bar jump!</p></div>
+            <div class="guide-card"><strong>Beta (13–30 Hz)</strong><p>Active thinking, problem solving, and alert concentration. Drives your <b>Focus</b> ring.</p></div>
+            <div class="guide-card"><strong>Gamma (30–44 Hz)</strong><p>High-level cognition &amp; sensory binding (also sensitive to jaw/face muscle tension).</p></div>
+            <div class="guide-card"><strong>Notch &amp; Bandpass</strong><p>Keep <b>Notch 60 Hz</b> (US) or <b>50 Hz</b> (EU) and <b>1–45 Hz Bandpass</b> enabled to filter out wall-outlet hum and DC drift.</p></div>
+          </div>
+          <h4>Session Recorder &amp; Markers</h4>
+          <p class="muted">Type a session name and click <b>Record</b> to save raw 256 Hz EEG to CSV + a JSON summary. Use <b>Events &amp; Markers</b> to tag moments like <em>"Eyes Closed"</em> or <em>"Math Problem"</em>.</p>
+        </section>
+
+        <!-- Neuro Lab -->
+        <section class="help-section hidden" data-help-panel="lab">
+          <h3>Neuro Lab — Neurofeedback, Mind Cursor &amp; Virtual Keyboard</h3>
+          <ol class="guide-steps">
+            <li><strong>Step 1 — Calibrate Baseline (10s):</strong> Sit still and relax normally, then click <b>Calibrate Baseline (10s)</b>. The studio measures your personal resting Focus and sets a custom threshold above your baseline. Adjust the <b>Focus Threshold</b> slider anytime to make it easier or harder.</li>
+            <li><strong>Step 2 — Neural Levitation:</strong> Watch the glowing orb. Engage active mental focus (e.g., mental math, reading, or concentrating on a single point) to lift the orb above the dashed line into the green <b>In The Zone</b> area. Enable <b>Harmonic Audio</b> for gentle chimes when you hold focus.</li>
+            <li><strong>Step 3 — Hybrid Mind Cursor:</strong> Check <b>Enable Cursor</b> and gently turn/tilt your head to steer the blue cursor using the Muse 2 gyroscope. Aim at the orange target ring and trigger a click using <b>Double Blink</b>, <b>Jaw Clench</b>, or <b>Focus Dwell (1s)</b>. Turn on <b>Focus Clutch</b> if you only want the cursor to move while your Focus is in the zone!</li>
+            <li><strong>Step 4 — Brainwave Virtual Keyboard:</strong> Choose your trigger (<em>Focus Surge</em>, <em>Double Blink</em>, or <em>Jaw Clench</em>), pick a scan speed, and click <b>Start Scanner</b>. First trigger locks the highlighted <b>Row</b>; second trigger types the highlighted <b>Key</b>. Click <b>Speak</b> to read your message aloud.</li>
+            <li><strong>Real OS Mouse / Typing (Optional):</strong> Everything starts in <b>SAFE</b> sandbox mode. To move your real Linux desktop cursor or type into other apps, arm <b>OS Mouse</b> or <b>OS Type</b> (requires <code>ydotool</code> on Wayland/COSMIC).</li>
+          </ol>
+        </section>
+
+        <!-- Games -->
+        <section class="help-section hidden" data-help-panel="games">
+          <h3>Neuro Runner: Cortex Kingdom</h3>
+          <p class="muted">Guide <b>Musey</b> through Cortex Kingdom using your brainwaves and gestures! Click <b>Start Game</b> (or press <code>Space</code>).</p>
+          <ul class="guide-steps">
+            <li><strong>Blink/Jaw Jump + Focus Glide (Default):</strong> Blink or clench your jaw to jump (and double-jump in mid-air!). Hold Focus above your threshold to activate <b>Neural Glide</b> (slow-fall) and an <b>Orb Magnet Aura</b>.</li>
+            <li><strong>Pure Focus Jetpack:</strong> Raise Focus above threshold to fly upward through coin arcs; relax to descend smoothly.</li>
+            <li><strong>Jaw Jump + Head-Tilt Speed:</strong> Clench jaw to jump and tilt your head left/right to slow down or speed up.</li>
+            <li><strong>Scoring:</strong> Synapse Orbs = <b>+10</b>, Stomp a red Noise Glitch from above = <b>+25</b>, Alpha Star = <b>+50 + 5.5s Shield</b>, Focus Zone = <b>2× Multiplier</b>.</li>
+            <li><strong>Keyboard Fallback:</strong> Press <code>Space</code> to jump and hold <code>Shift</code> to simulate Focus Boost anytime.</li>
+          </ul>
+        </section>
+
+        <!-- BCI & OSC -->
+        <section class="help-section hidden" data-help-panel="bci-osc">
+          <h3>BCI Triggers &amp; OSC Streaming</h3>
+          <h4>BCI Controls Tab</h4>
+          <p class="muted">Create rules that map gestures (<b>Double Blink</b>, <b>Jaw Clench</b>, <b>Head Tilt</b>) to actions like <b>Media Play/Pause</b>, <b>OSC Messages</b>, <b>Keystrokes</b>, or <b>HTTP Webhooks</b>. Test any rule safely with the <b>Test</b> button. Nothing fires automatically until you click <b>Arm Triggers</b>.</p>
+          <h4>OSC Bridge Tab</h4>
+          <p class="muted">Click <b>Start OSC Stream</b> to broadcast live EEG, band powers, heart rate, IMU, gestures, and ML state over UDP (default <code>127.0.0.1:5000</code>) into <b>MuseLab</b>, <b>TouchDesigner</b>, <b>Ableton Live</b>, <b>Unity</b>, or <b>Godot</b>.</p>
+        </section>
+
+        <!-- Personal ML -->
+        <section class="help-section hidden" data-help-panel="ml">
+          <h3>Training Your Personal Brain-State Classifier</h3>
+          <ol class="guide-steps">
+            <li><strong>Collect State #1:</strong> Type a label like <code>Eyes Closed</code>, close your eyes for 3 seconds, and click <b>Auto 5x</b> to capture 5 EEG snapshots.</li>
+            <li><strong>Collect State #2:</strong> Type a second label like <code>Deep Focus</code>, do mental math or read intensely, and click <b>Auto 5x</b> again.</li>
+            <li><strong>Train Model:</strong> Click <b>Train Personal Model</b>. You’ll immediately see your Leave-One-Out accuracy score (e.g. <code>90%</code>).</li>
+            <li><strong>Live Prediction:</strong> Your live predicted mental state now appears in the top header pill and broadcasts over OSC (<code>/muse/ml/state</code>)!</li>
+          </ol>
+        </section>
+
+        <!-- Troubleshooting -->
+        <section class="help-section hidden" data-help-panel="tips">
+          <h3>Quick Troubleshooting</h3>
+          <ul class="guide-steps">
+            <li><strong>Muse 2 not showing in Scan:</strong> Make sure the headset isn’t already connected to your phone’s Muse app (Bluetooth LE only allows one active connection at a time), and confirm Linux Bluetooth is powered on.</li>
+            <li><strong>Noisy / flatline channels:</strong> Tuck hair behind your ears, wipe the forehead sensors gently, and wait 3–5 seconds for the bandpass filter to settle.</li>
+            <li><strong>Focus ring stuck high or low:</strong> Run <b>Calibrate Baseline (10s)</b> in Neuro Lab or slide the <b>Focus Threshold</b> to match your current resting level.</li>
+            <li><strong>Wayland OS Mouse (`ydotool`):</strong> On Pop!_OS COSMIC / Wayland, install <code>ydotool</code> and make sure the <code>ydotoold</code> service is running if you arm real OS mouse/typing.</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
 
   <script src="/static/app.js"></script>
   <script src="/static/game.js"></script>
