@@ -59,31 +59,26 @@ flowchart LR
 - **Hybrid Mind Cursor:** Steer smoothly with Muse 2's **3-axis Gyroscope**, optionally gated by a **Focus Clutch** (moves only when Focus ≥ threshold), and click targets using **Double Blink**, **Jaw Clench**, or **1s Focus Dwell**. Includes a safe in-browser target-practice sandbox plus opt-in **OS Mouse** control.
 - **Brainwave Virtual Keyboard:** Clinical-style **Row-Column BCI Speller** (`QWERTY` + `SPACE`, `⌫`, `CLEAR`, `SPEAK`). Trigger via **Focus Surge**, **Double Blink**, or **Jaw Clench** to lock a row → lock a key → compose hands-free text with built-in speech synthesis and opt-in **OS Typing**.
 
-### 3. Games — *Neuro Runner: Cortex Kingdom*
-Our first mind-controlled Mario-style side-scrolling platformer starring **Musey**, a glowing neural sprite wearing a Muse 2 headband whose forehead LEDs light up green when you enter your Focus Zone.
+### 3. Games — *Brain Museum Arcade* (3 Playable Mind-Controlled Games + Audio)
+All three games include built-in **Web Audio SFX / pentatonic soundscapes** and keyboard fallbacks:
 
-| Action / Collectible | Points | Effect |
-| :--- | :---: | :--- |
-| **Synapse Orb** (golden coin) | **+10** | Magnetizes toward Musey when Focus is high |
-| **Stomp Noise Glitch** (enemy) | **+25** | Classic bounce stomp from above |
-| **Alpha Star** (rare power-up) | **+50** | 5.5s Golden Shield + **2× Multiplier** |
-| **Focus Zone Aura** | **2×** | Doubles points + enables **Neural Glide** slow-fall |
+1. **Neuro Runner: Cortex Kingdom** — Mario-style side-scrolling platformer starring **Musey**. Blink/Jaw to jump, stomp Noise Glitches (+25), collect Synapse Orbs (+10), grab Alpha Stars (+50 + 5.5s Shield), and hold Focus for **Neural Glide**, **Orb Magnet Aura**, and **2× Multiplier**.
+2. **Alpha Zen Garden** — Serene koi pond where sustaining **Calm (Alpha)** blooms lotuses (+15 / Golden +50), swirls fireflies, and plays generative pentatonic wind-chime notes. Blink/Jaw sends water ripples.
+3. **Blink Breakout** — Head-Gyro/Tilt neon paddle arcade (with 1-click **Center Head** calibration & **Steer** sensitivity slider), Blink/Jaw **Twin Lasers**, ascending pentatonic hit combos, and Focus **Wide Paddle + Piercing Power Ball**.
 
-**3 Mind Control Modes** *(plus `Space` = Jump and `Shift` = Focus Boost keyboard fallback)*:
-1. **Blink/Jaw Jump + Focus Glide** *(Recommended)* — Blink or clench jaw to jump (with double-jump); hold Focus to glide across gaps and magnetize orbs.
-2. **Pure Focus Jetpack** — Raise Focus to fly upward; relax to descend smoothly.
-3. **Jaw Jump + Head-Tilt Speed** — Clench jaw to jump; tilt head to accelerate or slow down.
+### 4. Zen Meditation Room *(Stereo Binaural Beats + Fullscreen Sanctuary)*
+- **True Stereo Binaural Synthesizer:** Left/Right ear entrainment presets (**Delta `2.5 Hz`**, **Theta `6.0 Hz`**, **Schumann `7.83 Hz`**, **Alpha `10.0 Hz`**, **Gamma `40.0 Hz`**).
+- **Layered Procedural Soundscape:** Independent **Binaural Beats** and **Ocean Wash + Biofeedback Singing-Bowl Drone** sliders (swells warmer as your Muse 2 Calm rises) + on-demand Tibetan **Bell**.
+- **4 Fullscreen Animated Zen Scenes:** *Aurora Cosmos*, *Kyoto Moon Pond*, *Breathing Mandala*, and *Misty Mountain Dawn*, with a guided **Box (4-4-4-4)** / **Relax (4-7-8)** breath pacer and session timer.
 
-*Roadmap games:* **Alpha Zen Garden** & **Blink Breakout**.
-
-### 4. BCI Controls & Triggers
+### 5. BCI Controls & Triggers
 Map real-time gestures (`double_blink`, `blink`, `jaw_clench`, `head_tilt_left`, `head_tilt_right`) with per-rule cooldowns to:
 - **OSC Messages** (custom path)
 - **HTTP Webhooks** (POST JSON to OBS, Home Assistant, n8n, or local scripts)
 - **Linux Media Controls** (`playerctl play-pause` / `next`)
 - **Desktop Keystrokes** (`xdotool`)
 
-### 5. Cross-Platform OSC Bridge
+### 6. Cross-Platform OSC Bridge
 Zero-dependency **OSC 1.0 UDP broadcaster** (default `127.0.0.1:5000`) compatible with **MuseLab, TouchDesigner, Ableton Live, Unity, Godot, and Max/MSP**:
 
 | OSC Address | Arguments | Description |
@@ -96,14 +91,27 @@ Zero-dependency **OSC 1.0 UDP broadcaster** (default `127.0.0.1:5000`) compatibl
 | `/muse/elements/{gesture}` | `int 1` | `blink`, `double_blink`, `jaw_clench`, `head_tilt_left/right` |
 | `/muse/ml/state` | `string label, float conf` | Live Personal ML state prediction |
 
-### 6. Personal ML Lab
+### 7. Personal ML Lab
 - Extracts a **24-dimensional EEG feature vector** (5 relative band powers × 4 channels + 4 cross-band ratios).
-- Capture labeled snapshots (`1x` or `Auto 5x` burst) for any custom mental states (e.g., *Deep Work*, *Eyes Closed*, *Meditation*).
+- 1-click **State Preset chips** (`Relaxed`, `Deep Focus`, `Eyes Closed`, `Meditation`) + `Auto 5x` capture bursts.
 - Trains a standardized regularized Gaussian classifier in milliseconds, reports **Leave-One-Out (LOO) Cross-Validation Accuracy**, and streams live predictions + probability bars to the top header and OSC.
 
 ---
 
-## 🚀 Quick Start
+## 📦 Download Standalone App (No Python Needed)
+
+Grab the latest pre-built native desktop app from [**GitHub Releases**](https://github.com/petebiggam357/brain-museum-studio/releases/latest) — launches in its **own self-contained desktop window** with the Brain Museum Studio icon (pass `--browser` if you prefer a browser tab):
+
+| Platform | Package | How to Run |
+| :--- | :--- | :--- |
+| **Linux (x64)** | `BrainMuseumStudio-x86_64.AppImage` | `chmod +x BrainMuseumStudio-x86_64.AppImage && ./BrainMuseumStudio-x86_64.AppImage` |
+| **macOS (Apple Silicon)** | `brain-museum-studio-macos-arm64.tar.gz` | Extract & open `brain-museum-studio.app` |
+| **Windows (x64)** | `brain-museum-studio-windows-x64.zip` | Extract & run `brain-museum-studio.exe` |
+| **Python Package** | `.whl` / `.tar.gz` | `pip install brain_museum_studio-*.whl` |
+
+---
+
+## 🚀 Quick Start (From Source)
 
 ### Prerequisites
 - **Python 3.10+** (tested on Python 3.12 on Ubuntu / Pop!_OS 24.04)
