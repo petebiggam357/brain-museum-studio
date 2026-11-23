@@ -39,6 +39,9 @@ class ProfileManager:
             "calm_baseline": 35.0,
             "focus_threshold": 50.0,
             "neutral_tilt": 0.0,
+            "last_device_address": "",
+            "last_device_name": "",
+            "auto_connect": False,
         }
 
     def _load(self) -> None:
@@ -94,6 +97,17 @@ class ProfileManager:
         p["calm_baseline"] = round(float(calm_baseline), 1)
         p["focus_threshold"] = round(max(10.0, min(92.0, float(focus_threshold))), 1)
         p["neutral_tilt"] = round(float(neutral_tilt), 4)
+        self._save()
+        return self.status()
+
+    def update_last_device(self, address: str, name: str, auto_connect: bool | None = None) -> Dict[str, Any]:
+        p = self.profiles[self.active_id]
+        if address:
+            p["last_device_address"] = address
+        if name:
+            p["last_device_name"] = name
+        if auto_connect is not None:
+            p["auto_connect"] = bool(auto_connect)
         self._save()
         return self.status()
 

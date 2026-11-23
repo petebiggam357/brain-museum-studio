@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import asyncio
+import csv
 import logging
 import math
 import time
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
@@ -55,6 +57,7 @@ class MuseDeviceManager:
         self._client: Optional[BleakClient] = None
         self._keepalive_task: Optional[asyncio.Task[None]] = None
         self._sim_task: Optional[asyncio.Task[None]] = None
+        self._replay_task: Optional[asyncio.Task[None]] = None
         self._sim_inject_blink: bool = False
         self._sim_inject_jaw: bool = False
         self._last_packet_ts: float = 0.0
@@ -67,9 +70,9 @@ class MuseDeviceManager:
             and self._client is not None
             and self._client.is_connected
         )
-        connected = ble_alive or self.mode == "simulator"
+        connected = ble_alive or self.mode in ("simulator", "replay")
         stream_healthy = (
-            self.mode == "simulator"
+            self.mode in ("simulator", "replay")
             or (ble_alive and (now - self._last_packet_ts) < 4.0)
         )
         return {
@@ -158,6 +161,46 @@ class MuseDeviceManager:
         self._sim_task = asyncio.create_task(self._simulator_loop())
         return self.status()
 
+    async def connect_replay(self, csv_path: Path, speed: float = 1.0) -> Dict[str, Any]:
+        """Replay a recorded 4-channel EEG CSV file through the live DSP & 3D Brain pipeline."""
+        if not csv_path.is_file():
+            raise FileNotFoundError(f"Recording not found: {csv_path.name}")
+        await self.disconnect()
+        self.dsp.reset()
+        self.mode = "replay"
+        self.device_name = f"Replay: {csv_path.name}"
+        self.device_address = "REPLAY"
+        self._replay_task = asyncio.create_task(self._replay_loop(csv_path, max(0.25, min(4.0, float(speed)))))
+        return self.status()
+
+    async def _replay_loop(self, csv_path: Path, speed: float) -> None:
+        rows: List[Tuple[float, float, float, float]] = []
+        with csv_path.open("r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                try:
+                    rows.append((float(row["TP9"]), float(row["AF7"]), float(row["AF8"]), float(row["TP10"])))
+                except Exception:
+                    continue
+        if not rows:
+            self.mode = "disconnected"
+            return
+
+        chunk = 12
+        step_sec = (chunk / EEG_SAMPLE_RATE) / speed
+        idx = 0
+        while True:
+            batch = rows[idx : idx + chunk]
+            if len(batch) < chunk:
+                idx = 0
+                batch = rows[0:chunk]
+            else:
+                idx += chunk
+            now = time.time()
+            for ch_i, ch in enumerate(EEG_CHANNELS):
+                self.dsp.push_eeg(ch, [r[ch_i] for r in batch], ts=now)
+            await asyncio.sleep(step_sec)
+
     def set_sim_state(self, state: str) -> Dict[str, Any]:
         if state in ("calm", "focus", "drowsy"):
             self.sim_state = state
@@ -177,6 +220,14 @@ class MuseDeviceManager:
             except asyncio.CancelledError:
                 pass
             self._sim_task = None
+
+        if self._replay_task is not None:
+            self._replay_task.cancel()
+            try:
+                await self._replay_task
+            except asyncio.CancelledError:
+                pass
+            self._replay_task = None
 
         if self._keepalive_task is not None:
             self._keepalive_task.cancel()

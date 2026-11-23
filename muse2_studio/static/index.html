@@ -63,6 +63,10 @@
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
         <span>ML Lab</span>
       </button>
+      <button class="seg-tab" data-tab="plus" role="tab">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        <span>Studio+</span>
+      </button>
     </nav>
 
     <div class="controls">
@@ -1050,6 +1054,101 @@
     </div>
   </div>
 
+  <!-- TAB: STUDIO+ (Neuro-Synth + Web MIDI, Smart Home Ambient Bridge, & Co-Meditation Synchrony) -->
+  <main class="container tab-panel hidden" id="panel-plus">
+    <div class="bento-grid">
+      <!-- Card 1: Neuro-Synth (Brain-to-Music + Web MIDI Out) -->
+      <section class="card span-2">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Generative Brain-to-Music · Web Audio + Web MIDI</span>
+            <h2>Neuro-Synth</h2>
+          </div>
+          <div class="controls">
+            <div class="filter-pill">
+              <span class="muted">Scale</span>
+              <select id="sel-synth-scale" class="ghost-sel">
+                <option value="pentatonic" selected>C Major Pentatonic</option>
+                <option value="minor">A Minor Ambient</option>
+                <option value="dorian">Dorian Dream</option>
+                <option value="lydian">Lydian Cosmic</option>
+                <option value="zen432">432 Hz Zen</option>
+              </select>
+            </div>
+            <button id="btn-synth-toggle" class="btn primary small">Start Neuro-Synth</button>
+          </div>
+        </div>
+        <p class="muted">
+          Turns live brainwaves into evolving music: <strong>Alpha</strong> opens the warm pad filter, <strong>Focus</strong> drives melodic arpeggios, and <strong>Blinks</strong> play crystalline harp accents.
+        </p>
+        <div class="cockpit-strip">
+          <div class="controls">
+            <span class="muted">Volume</span>
+            <input id="rng-synth-vol" type="range" min="0" max="1" step="0.05" value="0.55" style="width:90px" />
+          </div>
+          <span id="synth-note-readout" class="mono">Note: -- · Filter: --</span>
+        </div>
+        <div class="controls">
+          <button id="btn-midi-init" class="btn tonal small">Scan MIDI Ports</button>
+          <select id="sel-midi-out" class="small-sel"><option value="">Internal Web Audio Only</option></select>
+          <span class="muted" id="midi-status">Route MIDI Notes + CC#74 (Alpha) + CC#1 (Focus) to Ableton/Bitwig/Ardour</span>
+        </div>
+      </section>
+
+      <!-- Card 2: Smart Home Ambient Bridge -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Home Assistant / Hue Webhooks</span>
+            <h2>Smart Home Bridge</h2>
+          </div>
+          <button id="btn-home-arm" class="btn danger small">Ambient Scenes: SAFE</button>
+        </div>
+        <div class="form-col">
+          <label class="field-lbl">Deep Calm Webhook (Calm ≥ 65% for 8s)</label>
+          <div class="input-group">
+            <input id="inp-home-calm" type="text" placeholder="http://homeassistant.local:8123/api/webhook/..." />
+            <button id="btn-home-test-calm" class="btn tonal small">Test</button>
+          </div>
+          <label class="field-lbl">Deep Focus Webhook (Focus ≥ 65% for 8s)</label>
+          <div class="input-group">
+            <input id="inp-home-focus" type="text" placeholder="http://homeassistant.local:8123/api/webhook/..." />
+            <button id="btn-home-test-focus" class="btn tonal small">Test</button>
+          </div>
+          <span class="muted" id="home-status">SAFE mode — click Test or Arm to trigger room lighting scenes</span>
+        </div>
+      </section>
+
+      <!-- Card 3: 2-Headband Co-Meditation Synchrony & Focus Tug-of-War -->
+      <section class="card span-3">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Dual-Headband Wi-Fi Link · Inter-Brain Coherence</span>
+            <h2>Co-Meditation Synchrony &amp; 2-Player Focus Tug-of-War</h2>
+          </div>
+          <div class="controls">
+            <input id="inp-peer-ws" type="text" placeholder="ws://192.168.1.x:8765/ws (Partner's Studio)" style="width:240px" />
+            <button id="btn-peer-connect" class="btn primary small">Link Partner</button>
+            <button id="btn-peer-demo" class="btn tonal small">Demo Partner</button>
+            <span class="muted" id="peer-status">Not connected</span>
+          </div>
+        </div>
+        <div class="bento-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));padding:0">
+          <div class="form-col">
+            <div class="sub-header"><span>Brain-to-Brain Synchrony</span><b id="peer-sync-val" class="mono">--%</b></div>
+            <div class="bar-track" style="height:12px"><div class="bar-fill alpha" id="peer-sync-bar" style="width:0%"></div></div>
+            <span class="muted">Measures how closely your Calm &amp; Focus states align in real time</span>
+          </div>
+          <div class="form-col">
+            <div class="sub-header"><span>2-Player Focus Tug-of-War</span><b id="peer-tug-readout" class="mono">You -- vs Partner --</b></div>
+            <div class="asym-track"><div class="asym-marker" id="peer-tug-bar"></div></div>
+            <span class="muted">Push the marker right by out-focusing your partner!</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
   <!-- 4-STEP GUIDED CALIBRATION WIZARD MODAL -->
   <div class="modal-backdrop hidden" id="wizard-modal" role="dialog" aria-modal="true" aria-labelledby="wiz-step-title">
     <div class="modal-sheet" style="width:min(540px,100%)">
@@ -1080,5 +1179,6 @@
   <script src="/static/meditation.js"></script>
   <script src="/static/brain3d.js"></script>
   <script src="/static/studio_extras.js"></script>
+  <script src="/static/studio_plus.js"></script>
 </body>
 </html>

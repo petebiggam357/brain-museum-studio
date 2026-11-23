@@ -138,6 +138,15 @@ class ProfileCalibrateRequest(BaseModel):
     neutral_tilt: float = 0.0
 
 
+class ReplayStartRequest(BaseModel):
+    filename: str
+    speed: float = 1.0
+
+
+class AutoConnectRequest(BaseModel):
+    auto_connect: bool
+
+
 async def _broadcast_loop() -> None:
     """Broadcast ~20 FPS telemetry frames, run BCI rules, ML inference, Neuro Lab, and OSC bridge."""
     while True:
@@ -198,7 +207,7 @@ async def lifespan(_app: FastAPI):
         await device.disconnect()
 
 
-app = FastAPI(title="Brain Museum Studio", version="0.0.7", lifespan=lifespan)
+app = FastAPI(title="Brain Museum Studio", version="0.0.8", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -234,9 +243,25 @@ async def api_scan() -> Dict[str, Any]:
 @app.post("/api/connect/ble")
 async def api_connect_ble(req: ConnectBLERequest) -> Dict[str, Any]:
     try:
-        return await device.connect_ble(req.address, req.name)
+        st = await device.connect_ble(req.address, req.name)
+        profile_manager.update_last_device(req.address, req.name)
+        return st
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"BLE connect failed: {exc}") from exc
+
+
+@app.post("/api/replay/start")
+async def api_replay_start(req: ReplayStartRequest) -> Dict[str, Any]:
+    safe_name = Path(req.filename).name
+    target = RECORDINGS_DIR / safe_name
+    if not target.is_file():
+        raise HTTPException(status_code=404, detail="Recording CSV not found")
+    return await device.connect_replay(target, speed=req.speed)
+
+
+@app.post("/api/profiles/autoconnect")
+async def api_profiles_autoconnect(req: AutoConnectRequest) -> Dict[str, Any]:
+    return profile_manager.update_last_device("", "", auto_connect=req.auto_connect)
 
 
 @app.post("/api/connect/sim")

@@ -2,6 +2,15 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
+## `v0.0.8` — Studio+ (Neuro-Synth + Web MIDI, Smart Home Bridge, Co-Meditation Synchrony, Session Replay & Saved Muse 2)
+
+### New
+- **Neuro-Synth (Brain-to-Music + Web MIDI Out):** Real-time generative Web Audio synth (5 scales including 432 Hz Zen) driven by Alpha (pad filter), Focus (arpeggio motion), and Blinks (harp accents) + **Web MIDI Out** (Notes + CC#74 + CC#1) for Ableton, Bitwig, Ardour, and hardware synths.
+- **Smart Home Ambient Bridge:** Safe/Armed webhook automation for Home Assistant / Hue scenes when sustaining Deep Calm (`Calm ≥ 65%` for 8s) or Deep Focus (`Focus ≥ 65%` for 8s), with 1-click Test buttons.
+- **2-Headband Co-Meditation Synchrony & Focus Tug-of-War:** Link a partner’s Brain Museum Studio over local Wi-Fi WebSocket (or try Demo Partner solo) for live **Brain-to-Brain Synchrony %** and a **2-Player Focus Tug-of-War**.
+- **Recorded Session Replay (`▶ Replay`):** Stream any recorded EEG `.csv` back through the live Monitor, 3D Brain, and Spectrogram with one click.
+- **Remember My Muse 2:** Automatically remembers your last paired Muse 2 headband per profile so **Connect** is ready immediately without re-scanning.
+
 ## `v0.0.7` — Interactive 3D Brain Visualizer, Guided Calibration Wizard, Multi-User Profiles & Ultra-Fast Boot
 
 ### New

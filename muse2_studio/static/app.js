@@ -461,9 +461,18 @@
         li.innerHTML = `
           <span>${rec.session_id} <small class="muted">(${rec.duration_sec}s)</small></span>
           <span class="rec-links">
+            <a href="#" class="rec-replay" data-csv="${rec.csv_file}">▶ Replay</a>
             <a href="/api/recordings/${encodeURIComponent(rec.csv_file)}" download>CSV</a>
             <a href="/api/recordings/${encodeURIComponent(rec.summary_file)}" download>JSON</a>
           </span>`;
+        li.querySelector(".rec-replay")?.addEventListener("click", async (e) => {
+          e.preventDefault();
+          try {
+            await api("/api/replay/start", "POST", { filename: rec.csv_file, speed: 1.0 });
+          } catch (err) {
+            alert(err.message);
+          }
+        });
         el.recList.appendChild(li);
       }
     } catch (_) {}
@@ -1101,6 +1110,7 @@
       if (window.BrainMuseumMeditation) window.BrainMuseumMeditation.onFrame(frame);
       if (window.BrainMuseum3D) window.BrainMuseum3D.onFrame(frame);
       if (window.BrainMuseumExtras) window.BrainMuseumExtras.onFrame(frame);
+      if (window.BrainMuseumPlus) window.BrainMuseumPlus.onFrame(frame);
 
       // Update Neuro Lab telemetry
       if (frame.lab) {
@@ -1182,7 +1192,15 @@
       if (st.osc) renderOsc(st.osc);
       if (st.ml) renderMlStatus(st.ml);
       if (st.lab) renderLabConfig(st.lab);
-      if (st.profiles && window.BrainMuseumExtras) window.BrainMuseumExtras.initProfiles(st.profiles);
+      if (st.profiles && window.BrainMuseumExtras) {
+        window.BrainMuseumExtras.initProfiles(st.profiles);
+        const lastAddr = st.profiles.active?.last_device_address;
+        const lastName = st.profiles.active?.last_device_name;
+        if (lastAddr && !st.device?.connected) {
+          el.bleSelect.innerHTML = `<option value="${lastAddr}" data-name="${lastName || "Muse 2"}">${lastName || lastAddr} (Saved)</option>`;
+          el.btnConnectBle.disabled = false;
+        }
+      }
     } catch (_) {}
     refreshRecordings();
     connectWS();
