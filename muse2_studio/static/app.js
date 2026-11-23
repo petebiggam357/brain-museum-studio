@@ -19,6 +19,7 @@
     dot: document.getElementById("conn-dot"),
     status: document.getElementById("conn-status"),
     mlLivePill: document.getElementById("ml-live-pill"),
+    btnEmergencyStop: document.getElementById("btn-emergency-stop"),
     btnScan: document.getElementById("btn-scan"),
     bleSelect: document.getElementById("ble-select"),
     btnConnectBle: document.getElementById("btn-connect-ble"),
@@ -103,6 +104,9 @@
     selClickTrigger: document.getElementById("sel-click-trigger"),
     btnCursorRecenter: document.getElementById("btn-cursor-recenter"),
     btnOsMouseArm: document.getElementById("btn-os-mouse-arm"),
+    labClutchState: document.getElementById("lab-clutch-state"),
+    labGyroLive: document.getElementById("lab-gyro-live"),
+    labLastAction: document.getElementById("lab-last-action"),
     labCursorCanvas: document.getElementById("lab-cursor-canvas"),
     labHits: document.getElementById("lab-hits"),
     rngCursorSens: document.getElementById("rng-cursor-sens"),
@@ -136,6 +140,8 @@
   let targetHits = 0;
   let clickFlashAlpha = 0;
   let dwellStartTs = 0;
+  let lastClickTs = 0;
+  let prevInZone = false;
 
   // Gentle Web Audio Harmonic Feedback for Neurofeedback "In-Zone"
   let audioCtx = null;
@@ -286,6 +292,9 @@
   }
 
   function fireCursorClick() {
+    const now = performance.now();
+    if (now - lastClickTs < 1500) return; // 1.5s safety cooldown prevents rapid click storms
+    lastClickTs = now;
     clickFlashAlpha = 1.0;
     const cx = labState.cursor.x;
     const cy = labState.cursor.y;
@@ -355,8 +364,17 @@
   document.querySelectorAll("#help-tabs .chip").forEach((chip) => {
     chip.addEventListener("click", () => openHelp(chip.dataset.help));
   });
+  async function emergencyDisarm() {
+    if (!osMouseArmed && !osKeyboardArmed) return;
+    renderLabConfig(await api("/api/lab/disarm", "POST"));
+  }
+  el.btnEmergencyStop?.addEventListener("click", emergencyDisarm);
+
   window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !el.helpModal.classList.contains("hidden")) closeHelp();
+    if (e.key === "Escape") {
+      if (!el.helpModal.classList.contains("hidden")) closeHelp();
+      if (osMouseArmed || osKeyboardArmed) emergencyDisarm();
+    }
   });
 
   // HiDPI Retina Canvas helper with cached dimensions (zero layout thrashing in rAF)
@@ -685,6 +703,7 @@
     el.btnOsMouseArm.className = osMouseArmed ? "btn good small" : "btn danger small";
     el.btnOsKbdArm.textContent = osKeyboardArmed ? "OS Type: ARMED" : "OS Type: SAFE";
     el.btnOsKbdArm.className = osKeyboardArmed ? "btn good small" : "btn danger small";
+    el.btnEmergencyStop?.classList.toggle("hidden", !(osMouseArmed || osKeyboardArmed));
     if (data.focus_threshold != null) {
       el.rngLabThresh.value = Math.round(data.focus_threshold);
       el.valLabThresh.textContent = Math.round(data.focus_threshold);
@@ -1076,14 +1095,35 @@
         el.labZoneBadge.textContent = frame.lab.in_zone ? "In The Zone" : "Below Threshold";
         el.labZoneBadge.className = frame.lab.in_zone ? "pill-chip on" : "pill-chip";
 
+        // Update Live Control Cockpit strip
+        const c = frame.lab.cursor || {};
+        if (el.labClutchState) {
+          el.labClutchState.textContent = !c.enabled
+            ? "DISABLED"
+            : c.clutch_active
+              ? (c.focus_clutch ? "ENGAGED (Moving)" : "ALWAYS MOVING")
+              : "LOCKED (Raise Focus)";
+        }
+        if (el.labGyroLive && c.yaw_dps != null) {
+          el.labGyroLive.textContent = `Yaw ${c.yaw_dps.toFixed(1)} · Pitch ${c.pitch_dps.toFixed(1)}°/s`;
+        }
+        if (el.labLastAction && frame.lab.last_os_action) {
+          el.labLastAction.textContent = frame.lab.last_os_action;
+        }
+        el.btnEmergencyStop?.classList.toggle("hidden", !(frame.lab.os_mouse_armed || frame.lab.os_keyboard_armed));
+
+        // Rising-edge Focus Surge for Virtual Keyboard (must dip below threshold before re-triggering)
+        const focusRisingEdge = frame.lab.in_zone && !prevInZone;
+        prevInZone = !!frame.lab.in_zone;
+
         if (frame.lab.in_zone) {
           playChime(528);
-          if (kbdRunning && el.selKbdTrigger.value === "focus_surge") {
+          if (kbdRunning && el.selKbdTrigger.value === "focus_surge" && focusRisingEdge) {
             triggerKeyboardSelection();
           }
           if (el.selClickTrigger.value === "focus_dwell" && labState.cursor?.enabled) {
             if (!dwellStartTs) dwellStartTs = performance.now();
-            else if (performance.now() - dwellStartTs > 1000) {
+            else if (performance.now() - dwellStartTs > 1200) {
               dwellStartTs = 0;
               fireCursorClick();
             }

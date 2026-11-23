@@ -22,6 +22,7 @@
           <span class="dot" id="conn-dot"></span>
           <span id="conn-status">Disconnected</span>
           <span class="ml-pill hidden" id="ml-live-pill">State: --</span>
+          <button id="btn-emergency-stop" class="btn danger small hidden" title="Immediately disarm OS Mouse &amp; Keyboard (or press Esc)">STOP OS (Esc)</button>
         </div>
       </div>
     </div>
@@ -349,6 +350,11 @@
             <button id="btn-cursor-recenter" class="btn tonal small">Recenter</button>
             <button id="btn-os-mouse-arm" class="btn danger small">OS Mouse: SAFE</button>
           </div>
+        </div>
+        <div class="cockpit-strip">
+          <span>Clutch: <b id="lab-clutch-state" class="mono">OFF</b></span>
+          <span>Head Gyro: <b id="lab-gyro-live" class="mono">Yaw 0.0 · Pitch 0.0°/s</b></span>
+          <span>Last Action: <b id="lab-last-action" class="mono">Sandbox ready</b></span>
         </div>
         <div class="canvas-shell lab-shell">
           <canvas id="lab-cursor-canvas"></canvas>

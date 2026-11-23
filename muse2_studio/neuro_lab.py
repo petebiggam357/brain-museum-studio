@@ -37,13 +37,16 @@ class NeuroLabEngine:
         self.cursor_enabled: bool = False
         self.focus_clutch: bool = False  # If True, cursor only moves when focus >= focus_threshold
         self.sensitivity: float = 1.0
-        self.deadzone_dps: float = 4.0
+        self.deadzone_dps: float = 8.0
         self.invert_x: bool = False
         self.invert_y: bool = False
 
         # Opt-in OS desktop control (always SAFE / False on boot)
         self.os_mouse_armed: bool = False
         self.os_keyboard_armed: bool = False
+        self._last_os_move_ts: float = 0.0
+        self.last_os_action: str = "None (Sandbox mode)"
+        self._last_gyro: tuple[float, float] = (0.0, 0.0)
 
         # Neurofeedback streak stats
         self.in_zone: bool = False
@@ -70,6 +73,13 @@ class NeuroLabEngine:
     def recenter_cursor(self) -> Dict[str, Any]:
         self.cursor_x = 0.5
         self.cursor_y = 0.5
+        return self.status()
+
+    def disarm_all(self) -> Dict[str, Any]:
+        """Emergency stop: immediately disarm OS mouse and OS keyboard control."""
+        self.os_mouse_armed = False
+        self.os_keyboard_armed = False
+        self.last_os_action = "Emergency Disarmed (SAFE)"
         return self.status()
 
     def configure(self, cfg: Dict[str, Any]) -> Dict[str, Any]:
@@ -136,7 +146,8 @@ class NeuroLabEngine:
         # 3. Hybrid Gyro + Focus-Clutch Cursor
         imu = frame.get("imu", {})
         gyro = imu.get("gyro") or [0.0, 0.0, 0.0]
-        gx, gy, gz = float(gyro[0]), float(gyro[1]), float(gyro[2])
+        _gx, gy, gz = float(gyro[0]), float(gyro[1]), float(gyro[2])
+        self._last_gyro = (round(gz, 1), round(gy, 1))
 
         clutch_ok = (not self.focus_clutch) or self.in_zone
         if self.cursor_enabled and clutch_ok:
@@ -153,11 +164,12 @@ class NeuroLabEngine:
             self.cursor_x = max(0.02, min(0.98, self.cursor_x + norm_dx))
             self.cursor_y = max(0.02, min(0.98, self.cursor_y + norm_dy))
 
-            # Optional real OS cursor movement
-            if self.os_mouse_armed and (abs(dx_dps) > 0.1 or abs(dy_dps) > 0.1):
-                px_dx = int(round(sign_x * dx_dps * dt * 11.0 * self.sensitivity))
-                px_dy = int(round(sign_y * dy_dps * dt * 11.0 * self.sensitivity))
+            # Optional real OS cursor movement (throttled to ~12 Hz, clamped to ±28 px)
+            if self.os_mouse_armed and (now - self._last_os_move_ts) >= 0.08 and (abs(dx_dps) > 0.1 or abs(dy_dps) > 0.1):
+                px_dx = max(-28, min(28, int(round(sign_x * dx_dps * 0.08 * 9.0 * self.sensitivity))))
+                px_dy = max(-28, min(28, int(round(sign_y * dy_dps * 0.08 * 9.0 * self.sensitivity))))
                 if px_dx != 0 or px_dy != 0:
+                    self._last_os_move_ts = now
                     self._os_move_mouse(px_dx, px_dy)
 
         return {
@@ -179,9 +191,12 @@ class NeuroLabEngine:
                 "sensitivity": self.sensitivity,
                 "invert_x": self.invert_x,
                 "invert_y": self.invert_y,
+                "yaw_dps": self._last_gyro[0],
+                "pitch_dps": self._last_gyro[1],
             },
             "os_mouse_armed": self.os_mouse_armed,
             "os_keyboard_armed": self.os_keyboard_armed,
+            "last_os_action": self.last_os_action,
         }
 
     def trigger_os_click(self, button: str = "left") -> Dict[str, Any]:
@@ -195,6 +210,7 @@ class NeuroLabEngine:
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
+                self.last_os_action = f"OS Click ({button})"
                 return {"ok": True, "detail": f"ydotool click {button}"}
             if self._has_xdotool and self.session_type != "wayland":
                 btn = "1" if button == "left" else "3"
@@ -227,6 +243,7 @@ class NeuroLabEngine:
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
+                self.last_os_action = f"OS Type '{text}'"
                 return {"ok": True, "detail": f"ydotool type '{text}'"}
             if self._has_xdotool and self.session_type != "wayland":
                 subprocess.Popen(
@@ -245,6 +262,7 @@ class NeuroLabEngine:
             return
         try:
             if self._has_ydotool:
+                self.last_os_action = f"OS Move ({dx:+d}, {dy:+d} px)"
                 self._move_proc = subprocess.Popen(
                     ["ydotool", "mousemove", "--delay", "0", "--", str(dx), str(dy)],
                     stdout=subprocess.DEVNULL,

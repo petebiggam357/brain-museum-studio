@@ -372,6 +372,11 @@ async def api_lab_recenter() -> Dict[str, Any]:
     return neuro_lab.recenter_cursor()
 
 
+@app.post("/api/lab/disarm")
+async def api_lab_disarm() -> Dict[str, Any]:
+    return neuro_lab.disarm_all()
+
+
 @app.post("/api/lab/click")
 async def api_lab_click(req: LabClickRequest) -> Dict[str, Any]:
     return neuro_lab.trigger_os_click(req.button)
