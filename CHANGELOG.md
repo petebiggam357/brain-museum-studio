@@ -2,6 +2,16 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
+## `v0.0.6` — 6-Game Brain Museum Arcade, Graphics Overhaul & Instant-Start AppImage
+
+### New
+- **3 New Mind-Controlled Games (6 Total, All with Web Audio SFX):**
+  - **Focus Flight:** Aurora Canyon origami glider — raise Focus to climb, relax to glide, Blink/Space to flap through crystal pillars & golden Flow Rings.
+  - **Synapse Invaders:** Head-Gyro/Tilt Neuro-Ship space defender — Blink/Jaw to fire Plasma Bolts and Focus Zone for Twin Hyper-Beam.
+  - **Theta Memory Pulse:** 4-quadrant glowing Cortex Ring Simon sequence trainer with pentatonic audio and 2× Calm bonus.
+- **Graphics Upgrade Across All 6 Games:** Twinkling starfields, multi-layer parallax skies, glowing comet/motion trails, swimming koi fish in *Alpha Zen Garden*, beveled neon glass bricks in *Blink Breakout*, and floating `+pts` score popups!
+- **Instant-Start Linux AppImage (`--onedir`):** Eliminates `/tmp` double-extraction so `BrainMuseumStudio-x86_64.AppImage` launches in ~1–2 seconds!
+
 ## `v0.0.5` — Universal Linux GLIBC 2.35 AppImage, Chromeless App Fallback & Graphical Alerts
 
 ### Fixed

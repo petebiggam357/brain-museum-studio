@@ -33,6 +33,7 @@ jobs:
             artifact_name: brain-museum-studio-linux-x64
             add_data_sep: ":"
             archive: tar.gz
+            bundle_mode: "--onedir"
             extra_pkgs: "pywebview PyQt6 PyQt6-WebEngine qtpy"
             extra_pyi_flags: "--hidden-import webview.platforms.qt --hidden-import PyQt6 --hidden-import PyQt6.QtCore --hidden-import PyQt6.QtGui --hidden-import PyQt6.QtWidgets --hidden-import PyQt6.QtWebEngineCore --hidden-import PyQt6.QtWebEngineWidgets --hidden-import PyQt6.QtWebChannel --collect-all PyQt6 --collect-all PyQt6_WebEngine"
             icon_flag: ""
@@ -41,6 +42,7 @@ jobs:
             artifact_name: brain-museum-studio-macos-arm64
             add_data_sep: ":"
             archive: tar.gz
+            bundle_mode: "--onefile"
             extra_pkgs: "pywebview"
             extra_pyi_flags: "--hidden-import webview.platforms.cocoa"
             icon_flag: ""
@@ -49,6 +51,7 @@ jobs:
             artifact_name: brain-museum-studio-windows-x64
             add_data_sep: ";"
             archive: zip
+            bundle_mode: "--onefile"
             extra_pkgs: "pywebview"
             extra_pyi_flags: "--hidden-import webview.platforms.edgechromium"
             icon_flag: "--icon packaging/brain-museum-studio.ico"
@@ -67,7 +70,7 @@ jobs:
         shell: bash
         run: |
           pyinstaller \
-            --onefile \
+            ${{ matrix.bundle_mode }} \
             --name brain-museum-studio \
             ${{ matrix.windowed_flag }} \
             ${{ matrix.icon_flag }} \
@@ -90,13 +93,13 @@ jobs:
           else
             tar -czf "release_assets/${{ matrix.artifact_name }}.tar.gz" -C dist brain-museum-studio
           fi
-      - name: Build Linux AppImage (Self-Contained Native Window + Icon)
+      - name: Build Linux AppImage (Instant-Start --onedir + Native Window + Icon)
         if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
-          mkdir -p AppDir/usr/bin AppDir/usr/share/icons/hicolor/256x256/apps
-          cp dist/brain-museum-studio AppDir/usr/bin/brain-museum-studio
-          chmod +x AppDir/usr/bin/brain-museum-studio
+          mkdir -p AppDir/usr/lib AppDir/usr/share/icons/hicolor/256x256/apps
+          cp -r dist/brain-museum-studio AppDir/usr/lib/brain-museum-studio
+          chmod +x AppDir/usr/lib/brain-museum-studio/brain-museum-studio
           cp packaging/brain-museum-studio.desktop AppDir/brain-museum-studio.desktop
           cp packaging/brain-museum-studio.png AppDir/brain-museum-studio.png
           cp packaging/brain-museum-studio.svg AppDir/brain-museum-studio.svg
@@ -108,7 +111,7 @@ jobs:
           export QT_API=pyqt6
           export PYWEBVIEW_GUI=qt
           export QTWEBENGINE_DISABLE_SANDBOX=1
-          exec "${HERE}/usr/bin/brain-museum-studio" "$@"
+          exec "${HERE}/usr/lib/brain-museum-studio/brain-museum-studio" "$@"
           EOF
           chmod +x AppDir/AppRun
           curl -fsSL -o appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
