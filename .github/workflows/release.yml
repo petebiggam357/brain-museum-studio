@@ -24,6 +24,7 @@ jobs:
 
   build-binaries:
     needs: test
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -35,7 +36,7 @@ jobs:
             extra_pkgs: "pywebview PyQt6 PyQt6-WebEngine qtpy"
             icon_flag: ""
             windowed_flag: ""
-          - os: macos-latest
+          - os: macos-14
             artifact_name: brain-museum-studio-macos-arm64
             add_data_sep: ":"
             archive: tar.gz
@@ -135,8 +136,8 @@ jobs:
           path: dist/*
 
   publish-release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-binaries, build-python-dist]
+    if: always() && startsWith(github.ref, 'refs/tags/v') && needs.test.result == 'success'
+    needs: [test, build-binaries, build-python-dist]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
