@@ -232,6 +232,7 @@ select:focus, input:focus {
 
 .btn.danger { background: var(--red); color: #fff; }
 .btn.good { background: var(--green); color: #052e16; font-weight: 600; }
+.btn.good:disabled { opacity: 0.92; cursor: default; }
 .btn.danger-ghost {
   background: rgba(255, 69, 58, 0.12);
   color: var(--red);
