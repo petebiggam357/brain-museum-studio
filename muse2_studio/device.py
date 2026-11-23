@@ -57,13 +57,27 @@ class MuseDeviceManager:
         self._sim_task: Optional[asyncio.Task[None]] = None
         self._sim_inject_blink: bool = False
         self._sim_inject_jaw: bool = False
+        self._last_packet_ts: float = 0.0
+        self._resume_attempts: int = 0
 
     def status(self) -> Dict[str, Any]:
+        now = time.time()
+        ble_alive = (
+            self.mode == "ble"
+            and self._client is not None
+            and self._client.is_connected
+        )
+        connected = ble_alive or self.mode == "simulator"
+        stream_healthy = (
+            self.mode == "simulator"
+            or (ble_alive and (now - self._last_packet_ts) < 4.0)
+        )
         return {
-            "mode": self.mode,
-            "connected": self.mode in ("ble", "simulator"),
-            "device_name": self.device_name,
-            "device_address": self.device_address,
+            "mode": self.mode if connected else "disconnected",
+            "connected": connected,
+            "stream_healthy": stream_healthy,
+            "device_name": self.device_name if connected else "",
+            "device_address": self.device_address if connected else "",
             "sim_state": self.sim_state,
         }
 
@@ -126,6 +140,8 @@ class MuseDeviceManager:
         await asyncio.sleep(0.08)
         await client.write_gatt_char(MUSE_GATT_ATTR_STREAM_TOGGLE, CMD_RESUME, response=False)
 
+        self._last_packet_ts = time.time()
+        self._resume_attempts = 0
         self._keepalive_task = asyncio.create_task(self._ble_keepalive_loop())
         logger.info("Connected to Muse 2 BLE: %s (%s)", self.device_name, address)
         return self.status()
@@ -187,21 +203,44 @@ class MuseDeviceManager:
         return self.status()
 
     async def _ble_keepalive_loop(self) -> None:
+        """Send Muse 2 keep-alive ('k') every 2s and auto-resume if packets stall."""
         while self._client is not None and self._client.is_connected:
-            await asyncio.sleep(10.0)
+            await asyncio.sleep(2.0)
+            if self._client is None or not self._client.is_connected:
+                break
             try:
                 await self._client.write_gatt_char(
                     MUSE_GATT_ATTR_STREAM_TOGGLE, CMD_KEEP_ALIVE, response=False
                 )
+                # If EEG packets stalled for > 3.5s, nudge Muse 2 to resume streaming
+                if (time.time() - self._last_packet_ts) > 3.5:
+                    self._resume_attempts += 1
+                    logger.warning(
+                        "Muse 2 stream stalled (attempt %d); sending resume ('d')",
+                        self._resume_attempts,
+                    )
+                    await asyncio.sleep(0.05)
+                    await self._client.write_gatt_char(
+                        MUSE_GATT_ATTR_STREAM_TOGGLE, CMD_RESUME, response=False
+                    )
             except Exception as exc:
                 logger.warning("Keep-alive failed: %s", exc)
                 break
+
+        # If BLE link dropped unexpectedly, mark disconnected cleanly
+        if self.mode == "ble" and (self._client is None or not self._client.is_connected):
+            logger.warning("Muse 2 BLE connection lost")
+            self.mode = "disconnected"
+            self.device_name = ""
+            self.device_address = ""
 
     def _make_eeg_handler(self, channel: str) -> Callable[[Any, bytearray], None]:
         def _handler(_sender: Any, data: bytearray) -> None:
             try:
                 _seq, samples = decode_eeg_packet(bytes(data))
                 now = time.time()
+                self._last_packet_ts = now
+                self._resume_attempts = 0
                 self.dsp.push_eeg(channel, samples, ts=now)
                 if self.on_eeg_raw is not None:
                     self.on_eeg_raw(channel, samples, now)
