@@ -80,6 +80,7 @@
     btnMlTrain: document.getElementById("btn-ml-train"),
     btnMlClear: document.getElementById("btn-ml-clear"),
     mlDatasetSummary: document.getElementById("ml-dataset-summary"),
+    mlHint: document.getElementById("ml-hint"),
     mlCountsList: document.getElementById("ml-counts-list"),
     mlAccuracyBadge: document.getElementById("ml-accuracy-badge"),
     mlPredLabel: document.getElementById("ml-pred-label"),
@@ -528,16 +529,32 @@
   }
 
   function renderMlStatus(data) {
-    el.mlDatasetSummary.textContent = `Dataset: ${data.total_samples || 0} samples across ${Object.keys(data.label_counts || {}).length} states`;
+    const counts = data.label_counts || {};
+    const numStates = Object.keys(counts).length;
+    el.mlDatasetSummary.textContent = `Dataset: ${data.total_samples || 0} samples across ${numStates} state${numStates === 1 ? "" : "s"}`;
     el.mlCountsList.innerHTML = "";
-    for (const [lbl, cnt] of Object.entries(data.label_counts || {})) {
+    for (const [lbl, cnt] of Object.entries(counts)) {
       const li = document.createElement("li");
       li.innerHTML = `<strong>${lbl}</strong><span class="pill-chip">${cnt} samples</span>`;
       el.mlCountsList.appendChild(li);
     }
+    const ready = numStates >= 2 && Object.values(counts).every((c) => c >= 2);
+    el.btnMlTrain.disabled = !ready;
+    if (el.mlHint) {
+      if (numStates === 0) el.mlHint.textContent = "Step 1: Pick a state above (e.g. Relaxed) and click Auto 5x.";
+      else if (numStates === 1) el.mlHint.textContent = "Step 2: Pick a 2nd state (e.g. Deep Focus or Eyes Closed) and click Auto 5x to unlock Training.";
+      else if (!ready) el.mlHint.textContent = "Capture at least 2 samples for each state to train.";
+      else el.mlHint.textContent = data.trained ? "" : "Ready! Click Train Personal Model.";
+    }
     el.mlAccuracyBadge.textContent = data.trained ? `LOO Acc: ${data.loo_accuracy_pct}%` : "Not Trained";
     el.mlAccuracyBadge.className = data.trained ? "pill-chip on" : "pill-chip";
   }
+
+  document.querySelectorAll(".ml-preset").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      el.mlLabel.value = btn.dataset.label;
+    });
+  });
 
   // --- Controls ---
   el.btnScan.addEventListener("click", async () => {

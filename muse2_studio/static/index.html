@@ -611,8 +611,14 @@
           </div>
         </div>
         <p class="muted">
-          Enter a mental state (e.g. <em>Deep Work</em>, <em>Meditation</em>, <em>Eyes Closed</em>), capture 5–10 samples per state, and train your personal model.
+          Capture samples for <strong>at least 2 different states</strong> (click a preset below or type your own), then click Train.
         </p>
+        <div class="sim-group" id="ml-presets">
+          <button class="chip ml-preset" data-label="Relaxed">Relaxed</button>
+          <button class="chip ml-preset" data-label="Deep Focus">Deep Focus</button>
+          <button class="chip ml-preset" data-label="Eyes Closed">Eyes Closed</button>
+          <button class="chip ml-preset" data-label="Meditation">Meditation</button>
+        </div>
         <div class="input-group">
           <input id="ml-label" type="text" value="Relaxed" placeholder="State label" />
           <button id="btn-ml-capture" class="btn primary small">Capture</button>
@@ -623,6 +629,7 @@
           <button id="btn-ml-clear" class="btn tonal danger-text small">Clear</button>
         </div>
         <div class="muted" id="ml-dataset-summary">Dataset: 0 samples</div>
+        <div class="muted" id="ml-hint" style="color:var(--amber)"></div>
         <ul class="clean-list" id="ml-counts-list"></ul>
       </section>
 
