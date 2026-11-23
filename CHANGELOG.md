@@ -12,4 +12,4 @@ All notable changes to **Brain Museum Studio** are documented in this file.
 - **Games — *Neuro Runner: Cortex Kingdom*:** Mind-controlled Mario-style side-scrolling platformer starring **Musey** with 3 BCI control modes, Synapse Orbs, Noise Glitches, Alpha Stars, Focus 2× multiplier, and Web Audio SFX.
 - **BCI Trigger Engine & OSC 1.0 Bridge:** Safe/Armed gesture automation (`playerctl`, `xdotool`, webhooks, OSC) and zero-dependency UDP OSC streaming for MuseLab, TouchDesigner, Ableton Live, Unity, and Godot.
 - **Personal ML Lab & Session Recorder:** 24-feature EEG mental-state classifier with Leave-One-Out accuracy + live inference, and CSV/JSON session recording with custom event markers.
-- **Cross-Platform Release Packaging:** Automated GitHub Actions builds for Linux (`x64`), macOS (`arm64`), Windows (`x64`), and Python wheels.
+- **Cross-Platform Release Packaging:** Automated GitHub Actions builds for **Linux AppImage (`BrainMuseumStudio-x86_64.AppImage`)**, Linux (`x64` tarball), macOS (`arm64`), Windows (`x64` zip), and Python wheels.

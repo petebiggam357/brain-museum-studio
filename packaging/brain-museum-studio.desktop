@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Brain Museum Studio
+Comment=Muse 2 EEG/PPG Studio, Neuro Lab, Mind-Controlled Games, BCI & ML
+Exec=brain-museum-studio
+Icon=brain-museum-studio
+Categories=Science;Education;Utility;
+Terminal=false
+StartupNotify=true

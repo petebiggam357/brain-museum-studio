@@ -69,6 +69,24 @@ jobs:
         run: |
           mkdir -p release_assets
           tar -czf "release_assets/${{ matrix.artifact_name }}.tar.gz" -C dist brain-museum-studio
+      - name: Build Linux AppImage
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          mkdir -p AppDir/usr/bin
+          cp dist/brain-museum-studio AppDir/usr/bin/brain-museum-studio
+          chmod +x AppDir/usr/bin/brain-museum-studio
+          cp packaging/brain-museum-studio.desktop AppDir/brain-museum-studio.desktop
+          cp packaging/brain-museum-studio.svg AppDir/brain-museum-studio.svg
+          cat <<'EOF' > AppDir/AppRun
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          exec "${HERE}/usr/bin/brain-museum-studio" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+          curl -fsSL -o appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x appimagetool
+          ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 ./appimagetool AppDir "release_assets/BrainMuseumStudio-x86_64.AppImage"
       - name: Package archive (Windows)
         if: matrix.archive == 'zip'
         shell: pwsh
