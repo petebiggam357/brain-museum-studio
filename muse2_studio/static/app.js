@@ -497,12 +497,14 @@
     if (!addr) return;
     const name = el.bleSelect.selectedOptions[0]?.dataset.name || "Muse 2";
     el.btnConnectBle.disabled = true;
+    el.btnConnectBle.textContent = "Connecting...";
     try {
       await api("/api/connect/ble", "POST", { address: addr, name });
     } catch (e) {
-      alert(e.message);
-    } finally {
+      el.btnConnectBle.textContent = "Connect";
+      el.btnConnectBle.className = "btn primary";
       el.btnConnectBle.disabled = false;
+      alert(e.message);
     }
   });
 
@@ -919,6 +921,20 @@
       el.status.textContent = dev.connected ? dev.device_name : "Disconnected";
       el.btnDisconnect.disabled = !dev.connected;
       el.simBar.classList.toggle("hidden", dev.mode !== "simulator");
+
+      // Sync Connect button visual state (Green "Connected" when BLE is active)
+      if (dev.mode === "ble" && dev.connected) {
+        el.btnConnectBle.textContent = "Connected";
+        el.btnConnectBle.className = "btn good";
+        el.btnConnectBle.disabled = true;
+        if (dev.device_address && !Array.from(el.bleSelect.options).some((o) => o.value === dev.device_address)) {
+          el.bleSelect.innerHTML = `<option value="${dev.device_address}" data-name="${dev.device_name || "Muse 2"}">${dev.device_name || dev.device_address}</option>`;
+        }
+      } else if (el.btnConnectBle.textContent !== "Connecting...") {
+        el.btnConnectBle.textContent = "Connect";
+        el.btnConnectBle.className = "btn primary";
+        el.btnConnectBle.disabled = !el.bleSelect.value;
+      }
 
       const rec = frame.recording || {};
       isRecording = !!rec.active;
