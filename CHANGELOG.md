@@ -2,6 +2,12 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
+## `v0.0.2` — Self-Contained Native Desktop App & Full AppImage Icon
+
+### New
+- **Dedicated Native Desktop App Window (`pywebview`):** Standalone releases (`BrainMuseumStudio-x86_64.AppImage`, macOS, and Windows `.exe`) now launch inside their own native desktop window with the Brain Museum Studio icon — no browser tab or console window required! (Pass `--browser` anytime if you still want to open it in a browser.)
+- **Native App Icons Everywhere:** Added 256×256 PNG (`packaging/brain-museum-studio.png`), multi-size Windows ICO (`packaging/brain-museum-studio.ico`), and proper Linux AppImage `.DirIcon` + hicolor icon integration so your desktop dock and launcher show the Brain Museum Studio icon cleanly.
+
 ## `v0.0.1` — First Public Release
 
 ### Highlights

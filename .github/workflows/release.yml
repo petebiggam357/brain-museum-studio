@@ -32,14 +32,23 @@ jobs:
             artifact_name: brain-museum-studio-linux-x64
             add_data_sep: ":"
             archive: tar.gz
+            extra_pkgs: "pywebview PyQt6 PyQt6-WebEngine qtpy"
+            icon_flag: ""
+            windowed_flag: ""
           - os: macos-latest
             artifact_name: brain-museum-studio-macos-arm64
             add_data_sep: ":"
             archive: tar.gz
+            extra_pkgs: "pywebview"
+            icon_flag: ""
+            windowed_flag: "--windowed"
           - os: windows-latest
             artifact_name: brain-museum-studio-windows-x64
             add_data_sep: ";"
             archive: zip
+            extra_pkgs: "pywebview"
+            icon_flag: "--icon packaging/brain-museum-studio.ico"
+            windowed_flag: "--windowed"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -49,14 +58,17 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e . pyinstaller
-      - name: Build standalone executable
+          pip install -e . pyinstaller ${{ matrix.extra_pkgs }}
+      - name: Build self-contained native desktop executable
         shell: bash
         run: |
           pyinstaller \
             --onefile \
             --name brain-museum-studio \
+            ${{ matrix.windowed_flag }} \
+            ${{ matrix.icon_flag }} \
             --add-data "muse2_studio/static${{ matrix.add_data_sep }}muse2_studio/static" \
+            --add-data "packaging/brain-museum-studio.png${{ matrix.add_data_sep }}packaging" \
             --hidden-import uvicorn.logging \
             --hidden-import uvicorn.loops.auto \
             --hidden-import uvicorn.protocols.http.auto \
@@ -68,19 +80,27 @@ jobs:
         shell: bash
         run: |
           mkdir -p release_assets
-          tar -czf "release_assets/${{ matrix.artifact_name }}.tar.gz" -C dist brain-museum-studio
-      - name: Build Linux AppImage
+          if [ -d dist/brain-museum-studio.app ]; then
+            tar -czf "release_assets/${{ matrix.artifact_name }}.tar.gz" -C dist brain-museum-studio.app
+          else
+            tar -czf "release_assets/${{ matrix.artifact_name }}.tar.gz" -C dist brain-museum-studio
+          fi
+      - name: Build Linux AppImage (Self-Contained Native Window + Icon)
         if: matrix.os == 'ubuntu-latest'
         shell: bash
         run: |
-          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/bin AppDir/usr/share/icons/hicolor/256x256/apps
           cp dist/brain-museum-studio AppDir/usr/bin/brain-museum-studio
           chmod +x AppDir/usr/bin/brain-museum-studio
           cp packaging/brain-museum-studio.desktop AppDir/brain-museum-studio.desktop
+          cp packaging/brain-museum-studio.png AppDir/brain-museum-studio.png
           cp packaging/brain-museum-studio.svg AppDir/brain-museum-studio.svg
+          cp packaging/brain-museum-studio.png AppDir/usr/share/icons/hicolor/256x256/apps/brain-museum-studio.png
+          ln -sf brain-museum-studio.png AppDir/.DirIcon
           cat <<'EOF' > AppDir/AppRun
           #!/bin/sh
           HERE="$(dirname "$(readlink -f "${0}")")"
+          export QTWEBENGINE_DISABLE_SANDBOX=1
           exec "${HERE}/usr/bin/brain-museum-studio" "$@"
           EOF
           chmod +x AppDir/AppRun
