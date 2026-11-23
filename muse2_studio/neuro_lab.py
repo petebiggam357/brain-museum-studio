@@ -177,12 +177,20 @@ class NeuroLabEngine:
             return {"ok": False, "detail": "OS mouse is unarmed (sandbox only)"}
         try:
             if self._has_ydotool:
-                code = "0xC0" if button == "left" else "0xC1"
-                subprocess.Popen(["ydotool", "click", code])
+                btn = "1" if button == "left" else "2"
+                subprocess.Popen(
+                    ["ydotool", "click", btn],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
                 return {"ok": True, "detail": f"ydotool click {button}"}
             if self._has_xdotool and self.session_type != "wayland":
                 btn = "1" if button == "left" else "3"
-                subprocess.Popen(["xdotool", "click", btn])
+                subprocess.Popen(
+                    ["xdotool", "click", btn],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
                 return {"ok": True, "detail": f"xdotool click {button}"}
             return {"ok": False, "detail": "Install ydotool for Wayland OS mouse control"}
         except Exception as exc:
@@ -195,13 +203,25 @@ class NeuroLabEngine:
             return {"ok": False, "detail": "Empty text"}
         try:
             if self._has_wtype and self.session_type == "wayland":
-                subprocess.Popen(["wtype", text])
+                subprocess.Popen(
+                    ["wtype", text],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
                 return {"ok": True, "detail": f"wtype '{text}'"}
             if self._has_ydotool:
-                subprocess.Popen(["ydotool", "type", text])
+                subprocess.Popen(
+                    ["ydotool", "type", text],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
                 return {"ok": True, "detail": f"ydotool type '{text}'"}
             if self._has_xdotool and self.session_type != "wayland":
-                subprocess.Popen(["xdotool", "type", "--delay", "20", text])
+                subprocess.Popen(
+                    ["xdotool", "type", "--delay", "20", text],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
                 return {"ok": True, "detail": f"xdotool type '{text}'"}
             return {"ok": False, "detail": "Install wtype or ydotool for Wayland OS typing"}
         except Exception as exc:
@@ -210,9 +230,17 @@ class NeuroLabEngine:
     def _os_move_mouse(self, dx: int, dy: int) -> None:
         try:
             if self._has_ydotool:
-                subprocess.Popen(["ydotool", "mousemove", "--", str(dx), str(dy)])
+                subprocess.Popen(
+                    ["ydotool", "mousemove", "--", str(dx), str(dy)],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
             elif self._has_xdotool and self.session_type != "wayland":
-                subprocess.Popen(["xdotool", "mousemove_relative", "--", str(dx), str(dy)])
+                subprocess.Popen(
+                    ["xdotool", "mousemove_relative", "--", str(dx), str(dy)],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
         except Exception:
             pass
 
