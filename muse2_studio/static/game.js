@@ -15,6 +15,9 @@
     btnStart: document.getElementById("btn-game-start"),
     modeWrap: document.getElementById("game-mode-wrap"),
     selMode: document.getElementById("sel-game-mode"),
+    brkCalWrap: document.getElementById("breakout-cal-wrap"),
+    btnBrkCal: document.getElementById("btn-brk-cal"),
+    rngBrkSens: document.getElementById("rng-brk-sens"),
     chkAudio: document.getElementById("chk-game-audio"),
     score: document.getElementById("game-score"),
     best: document.getElementById("game-best"),
@@ -541,6 +544,8 @@
     combo: 0,
     paddleX: 0.5,
     paddleW: 110,
+    neutralTilt: 0.0,
+    steerSens: 2.0,
     ball: { x: 200, y: 200, vx: 210, vy: -240, r: 8 },
     bricks: [],
     lasers: [],
@@ -576,6 +581,7 @@
     brk.wave = 1;
     brk.combo = 0;
     brk.paddleX = 0.5;
+    brk.neutralTilt = bci.tiltY; // Auto-zero neutral head angle on Start
     brk.lasers = [];
     brk.particles = [];
     brk.ball = { x: w * 0.5, y: h - 55, vx: 210 * (Math.random() < 0.5 ? 1 : -1), vy: -250, r: 8 };
@@ -609,13 +615,20 @@
     const inFocus = bci.inZone || keyFocusHeld;
     brk.paddleW = inFocus ? 148 : 104;
 
-    // Steer paddle with Muse 2 Gyro Yaw OR Head Tilt OR Arrow Keys
+    // Steer paddle with calibrated Head Gyro Yaw + Zeroed Head Tilt OR Arrow Keys
     let move = 0;
-    if (Math.abs(bci.yawDps) > 7) move -= bci.yawDps * 0.014;
-    if (Math.abs(bci.tiltY) > 0.12) move += bci.tiltY * 1.4;
-    if (keyLeftHeld) move -= 1.3;
-    if (keyRightHeld) move += 1.3;
-    brk.paddleX = Math.max(0.08, Math.min(0.92, brk.paddleX + move * dt));
+    const sens = brk.steerSens || 2.0;
+    if (Math.abs(bci.yawDps) > 4.0) {
+      const yawAdj = bci.yawDps > 0 ? bci.yawDps - 4.0 : bci.yawDps + 4.0;
+      move -= yawAdj * 0.016 * sens;
+    }
+    const relTilt = bci.tiltY - brk.neutralTilt;
+    if (Math.abs(relTilt) > 0.06) {
+      move += relTilt * 1.6 * sens;
+    }
+    if (keyLeftHeld) move -= 1.35;
+    if (keyRightHeld) move += 1.35;
+    brk.paddleX = Math.max(0.06, Math.min(0.94, brk.paddleX + move * dt));
 
     const b = brk.ball;
     b.x += b.vx * dt;
@@ -808,6 +821,7 @@
     if (ui.title) ui.title.textContent = m.title;
     if (ui.btnStart) ui.btnStart.textContent = m.startLbl;
     if (ui.modeWrap) ui.modeWrap.classList.toggle("hidden", !m.showMode);
+    if (ui.brkCalWrap) ui.brkCalWrap.classList.toggle("hidden", gameId !== "breakout");
     if (ui.legend) ui.legend.innerHTML = m.legend;
     if (ui.status) ui.status.textContent = m.status;
     document.querySelectorAll(".game-card-select").forEach((c) => {
@@ -818,6 +832,16 @@
 
   document.querySelectorAll(".game-card-select").forEach((card) => {
     card.addEventListener("click", () => selectGame(card.dataset.game));
+  });
+
+  ui.btnBrkCal?.addEventListener("click", () => {
+    brk.neutralTilt = bci.tiltY;
+    brk.paddleX = 0.5;
+    sfx(523.25, 659.25, 0.12, "sine", 0.06);
+    if (ui.status) ui.status.textContent = "Head center calibrated! Gentle turns now reach both edges.";
+  });
+  ui.rngBrkSens?.addEventListener("input", () => {
+    brk.steerSens = Number(ui.rngBrkSens.value) || 2.0;
   });
 
   ui.btnStart?.addEventListener("click", () => {

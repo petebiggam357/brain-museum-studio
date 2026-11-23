@@ -428,6 +428,13 @@
                 <option value="jaw_tilt">Jaw Jump + Head-Tilt Speed</option>
               </select>
             </div>
+            <div class="controls hidden" id="breakout-cal-wrap">
+              <button id="btn-brk-cal" class="btn tonal small" title="Look straight ahead and click to zero head tilt &amp; center paddle">Center Head</button>
+              <div class="filter-pill">
+                <span class="muted">Steer</span>
+                <input id="rng-brk-sens" type="range" min="0.8" max="3.5" step="0.2" value="2.0" style="width:76px" />
+              </div>
+            </div>
             <label class="toggle-pill">
               <input type="checkbox" id="chk-game-audio" checked />
               <span>Audio SFX</span>
