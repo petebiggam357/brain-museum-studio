@@ -2,6 +2,16 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
+## `v0.1.0` — First Beta Release 🚀
+
+**Brain Museum Studio graduates from Alpha (`0.0.x`) to Beta (`v0.1.0`)!**
+
+### Tightening & Performance Optimizations
+- **Whisper-Quiet Long-Session CPU:** Throttled non-waveform DOM text/bar updates in [`app.js`](muse2_studio/static/app.js) (~5 Hz) and [`brain3d.js`](muse2_studio/static/brain3d.js) (~4 Hz) while keeping EEG, 3D Brain, Games, and Meditation canvases locked at silky 60 FPS.
+- **Zero Zombie Subprocesses:** Added async daemon subprocess reaping (`_spawn_reaped`) in [`neuro_lab.py`](muse2_studio/neuro_lab.py) so `ydotool` / `wtype` / `xdotool` never leave `<defunct>` processes behind.
+- **PWA & Browser Favicon Polish:** Bundled `static/icon.png` for crisp browser tab favicons and standalone PWA installs (`manifest.json`).
+- **Expanded Verification:** 11/11 automated `pytest` tests passing in ~0.16s (covering BLE protocol, pure-NumPy biquad DSP, HRV RMSSD/coherence, OSC/LSL, BCI, Personal ML, Profiles, Neuro Lab, and Recorder) + verified cross-platform builds on Linux (`AppImage` + tarball), macOS (`arm64` `.app`), Windows (`x64` `.exe`), and Python wheel.
+
 ## `v0.0.9` — True PPG HRV & Coherence, Muse S / 2016 Support, LSL Outlet, Report PNG, Web BLE & MIT License
 
 ### New

@@ -293,6 +293,7 @@
   }
   requestAnimationFrame(loop);
 
+  let lastHudUpdateTs = 0;
   window.BrainMuseum3D = {
     onFrame(frame) {
       if (frame.channel_bands) live.channelBands = frame.channel_bands;
@@ -301,9 +302,12 @@
       if (frame.metrics) { live.focus = frame.metrics.focus || 0; live.calm = frame.metrics.calm || 0; }
       if (frame.spectrum) pushSpectrogramColumn(frame.spectrum);
 
-      // Update Frontal Alpha Asymmetry & Coherence HUD when visible
+      // Update Frontal Alpha Asymmetry & Coherence HUD at ~4 Hz when visible (low CPU)
       const panel = document.getElementById("panel-brain3d");
       if (!panel || panel.classList.contains("hidden")) return;
+      const now = performance.now();
+      if (now - lastHudUpdateTs < 240) return;
+      lastHudUpdateTs = now;
 
       if (ui.asymVal) {
         const a = live.asymmetry;

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brain-museum-studio"
-version = "0.0.9"
+version = "0.1.0"
 description = "Brain Museum Studio — Cross-platform (Linux-first) real-time Muse 2 EEG/PPG dashboard, 3D Brain visualizer, Neuro Lab, 6 mind-controlled games, Zen Meditation, BCI, OSC & ML"
 readme = "README.md"
 requires-python = ">=3.10"

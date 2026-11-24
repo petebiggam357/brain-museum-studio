@@ -1015,6 +1015,7 @@
   requestAnimationFrame(renderLoop);
 
   // --- WebSocket Stream ---
+  let lastHudDomTs = 0;
   function connectWS() {
     const proto = location.protocol === "https:" ? "wss" : "ws";
     const ws = new WebSocket(`${proto}://${location.host}/ws`);
@@ -1063,36 +1064,44 @@
       }
       if (frame.spectrum && frame.spectrum.length) fftSpectrum = frame.spectrum;
 
-      const q = frame.quality || {};
-      el.horseshoe.querySelectorAll(".node").forEach((node) => {
-        node.className = `node q${q[node.dataset.ch] ?? 0}`;
-      });
+      // Throttle non-waveform HUD DOM updates to ~5 Hz for whisper-quiet CPU during long sessions
+      const nowDom = performance.now();
+      if (nowDom - lastHudDomTs >= 180) {
+        lastHudDomTs = nowDom;
+        const q = frame.quality || {};
+        el.horseshoe.querySelectorAll(".node").forEach((node) => {
+          const val = q[node.dataset.ch] ?? 0;
+          node.className = `node q${val}`;
+        });
 
-      if (frame.rms) {
-        el.rmsReadout.innerHTML = `<span>TP9 <b>${frame.rms.TP9}</b></span><span>AF7 <b>${frame.rms.AF7}</b></span><span>AF8 <b>${frame.rms.AF8}</b></span><span>TP10 <b>${frame.rms.TP10}</b></span>`;
-      }
+        if (frame.rms) {
+          el.rmsReadout.innerHTML = `<span>TP9 <b>${frame.rms.TP9}</b></span><span>AF7 <b>${frame.rms.AF7}</b></span><span>AF8 <b>${frame.rms.AF8}</b></span><span>TP10 <b>${frame.rms.TP10}</b></span>`;
+        }
 
-      const m = frame.metrics || {};
-      const focusVal = m.focus != null ? Math.round(m.focus) : null;
-      const calmVal = m.calm != null ? Math.round(m.calm) : null;
-      latestFocus = m.focus || 0;
-      el.focus.textContent = focusVal != null ? focusVal : "--";
-      el.calm.textContent = calmVal != null ? calmVal : "--";
-      setRing(el.ringFocus, focusVal || 0);
-      setRing(el.ringCalm, calmVal || 0);
-      el.bpm.textContent = m.heart_rate_bpm != null ? Math.round(m.heart_rate_bpm) : "--";
-      el.battery.innerHTML = `<svg class="ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/></svg> ${m.battery_pct != null ? m.battery_pct + "%" : "--%"}`;
+        const m = frame.metrics || {};
+        const focusVal = m.focus != null ? Math.round(m.focus) : null;
+        const calmVal = m.calm != null ? Math.round(m.calm) : null;
+        latestFocus = m.focus || 0;
+        el.focus.textContent = focusVal != null ? focusVal : "--";
+        el.calm.textContent = calmVal != null ? calmVal : "--";
+        setRing(el.ringFocus, focusVal || 0);
+        setRing(el.ringCalm, calmVal || 0);
+        el.bpm.textContent = m.heart_rate_bpm != null ? Math.round(m.heart_rate_bpm) : "--";
+        el.battery.innerHTML = `<svg class="ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/></svg> ${m.battery_pct != null ? m.battery_pct + "%" : "--%"}`;
 
-      const rel = (frame.bands && frame.bands.relative) || {};
-      document.querySelectorAll("#bands-container .band-row").forEach((row) => {
-        const pct = rel[row.dataset.band] || 0;
-        row.querySelector(".bar-fill").style.width = `${Math.min(100, pct)}%`;
-        row.querySelector(".band-pct").textContent = `${pct.toFixed(0)}%`;
-      });
+        const rel = (frame.bands && frame.bands.relative) || {};
+        document.querySelectorAll("#bands-container .band-row").forEach((row) => {
+          const pct = rel[row.dataset.band] || 0;
+          row.querySelector(".bar-fill").style.width = `${Math.min(100, pct)}%`;
+          row.querySelector(".band-pct").textContent = `${pct.toFixed(0)}%`;
+        });
 
-      if (frame.imu && frame.imu.accel) {
-        const [ax, ay, az] = frame.imu.accel;
-        el.imu.textContent = `${ax.toFixed(2)}, ${ay.toFixed(2)}, ${az.toFixed(2)} g`;
+        if (frame.imu && frame.imu.accel) {
+          const [ax, ay, az] = frame.imu.accel;
+          el.imu.textContent = `${ax.toFixed(2)}, ${ay.toFixed(2)}, ${az.toFixed(2)} g`;
+        }
+      } else if (frame.metrics) {
+        latestFocus = frame.metrics.focus || 0;
       }
 
       for (const ev of frame.events || []) {

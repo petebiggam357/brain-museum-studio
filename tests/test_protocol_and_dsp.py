@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 
 from muse2_studio.bci import BCIEngine
-from muse2_studio.bridge import OSCBridge, encode_osc_message
+from muse2_studio.bridge import LSLBridge, OSCBridge, encode_osc_message
 from muse2_studio.dsp import SignalProcessor
 from muse2_studio.ml import PersonalStateClassifier
 from muse2_studio.neuro_lab import NeuroLabEngine
@@ -211,5 +211,23 @@ def test_profile_manager_and_coherence(tmp_path: Path) -> None:
     frame = dsp.drain_frame()
     assert frame["coherence"]["AF7-AF8"] > 0.98
     assert "AF7" in frame["channel_bands"]
+
+
+def test_ppg_hrv_coherence_and_lsl_bridge() -> None:
+    dsp = SignalProcessor()
+    t_ppg = np.arange(int(8 * PPG_SAMPLE_RATE)) / PPG_SAMPLE_RATE
+    phase = (t_ppg * 1.15) % 1.0  # ~69 BPM
+    ppg = [int(120000 + 2800 * math.exp(-((p - 0.25) ** 2) / 0.004)) for p in phase]
+    dsp.push_ppg("PPG2", ppg)
+
+    m = dsp.compute_ppg_metrics()
+    assert m["heart_rate_bpm"] is not None and 64.0 <= m["heart_rate_bpm"] <= 74.0
+    assert m["hrv_rmssd_ms"] is not None
+    assert m["hrv_coherence"] is not None and 0.0 <= m["hrv_coherence"] <= 100.0
+
+    lsl = LSLBridge()
+    st = lsl.status()
+    assert "available" in st and st["enabled"] is False
+
 
 

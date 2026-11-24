@@ -11,8 +11,21 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import threading
 import time
 from typing import Any, Dict, List, Optional
+
+
+def _spawn_reaped(cmd: List[str]) -> None:
+    """Spawn a short-lived OS input command and reap it asynchronously (zero <defunct> zombies)."""
+    def _run() -> None:
+        try:
+            proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            proc.wait(timeout=3.0)
+        except Exception:
+            pass
+
+    threading.Thread(target=_run, daemon=True).start()
 
 
 class NeuroLabEngine:
@@ -205,20 +218,13 @@ class NeuroLabEngine:
         try:
             if self._has_ydotool:
                 btn = "1" if button == "left" else "2"
-                subprocess.Popen(
-                    ["ydotool", "click", "--delay", "0", btn],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
+                _spawn_reaped(["ydotool", "click", "--delay", "0", btn])
                 self.last_os_action = f"OS Click ({button})"
                 return {"ok": True, "detail": f"ydotool click {button}"}
             if self._has_xdotool and self.session_type != "wayland":
                 btn = "1" if button == "left" else "3"
-                subprocess.Popen(
-                    ["xdotool", "click", btn],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
+                _spawn_reaped(["xdotool", "click", btn])
+                self.last_os_action = f"OS Click ({button})"
                 return {"ok": True, "detail": f"xdotool click {button}"}
             return {"ok": False, "detail": "Install ydotool for Wayland OS mouse control"}
         except Exception as exc:
@@ -231,26 +237,16 @@ class NeuroLabEngine:
             return {"ok": False, "detail": "Empty text"}
         try:
             if self._has_wtype and self.session_type == "wayland":
-                subprocess.Popen(
-                    ["wtype", text],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
+                _spawn_reaped(["wtype", text])
+                self.last_os_action = f"OS Type '{text}'"
                 return {"ok": True, "detail": f"wtype '{text}'"}
             if self._has_ydotool:
-                subprocess.Popen(
-                    ["ydotool", "type", text],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
+                _spawn_reaped(["ydotool", "type", text])
                 self.last_os_action = f"OS Type '{text}'"
                 return {"ok": True, "detail": f"ydotool type '{text}'"}
             if self._has_xdotool and self.session_type != "wayland":
-                subprocess.Popen(
-                    ["xdotool", "type", "--delay", "20", text],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
+                _spawn_reaped(["xdotool", "type", "--delay", "20", text])
+                self.last_os_action = f"OS Type '{text}'"
                 return {"ok": True, "detail": f"xdotool type '{text}'"}
             return {"ok": False, "detail": "Install wtype or ydotool for Wayland OS typing"}
         except Exception as exc:
