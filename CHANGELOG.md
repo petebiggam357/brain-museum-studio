@@ -2,9 +2,9 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
-## `v0.1.0` — First Beta Release 🚀
+## `v0.1.0-beta` — First Beta Release 🚀
 
-**Brain Museum Studio graduates from Alpha (`0.0.x`) to Beta (`v0.1.0`)!**
+**Brain Museum Studio graduates from Alpha (`0.0.x-alpha`) to Beta (`v0.1.0-beta`)!**
 
 ### Tightening & Performance Optimizations
 - **Whisper-Quiet Long-Session CPU:** Throttled non-waveform DOM text/bar updates in [`app.js`](muse2_studio/static/app.js) (~5 Hz) and [`brain3d.js`](muse2_studio/static/brain3d.js) (~4 Hz) while keeping EEG, 3D Brain, Games, and Meditation canvases locked at silky 60 FPS.

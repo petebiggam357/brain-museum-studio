@@ -4,7 +4,7 @@
 
 **Native Linux & Cross-Platform Muse 2 EEG/PPG Studio, Neurofeedback Lab, Mind-Controlled Games, BCI Automation, OSC Bridge, and Personal ML.**
 
-![Version](https://img.shields.io/badge/version-0.1.0%20Beta-0a84ff?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.1.0--beta-0a84ff?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-30d158?style=for-the-badge)
 ![Python](https://img.shields.io/badge/python-3.10%2B-30d158?style=for-the-badge&logo=python&logoColor=white)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-5e5ce6?style=for-the-badge)
