@@ -38,7 +38,7 @@ jobs:
             extra_pyi_flags: "--hidden-import webview.platforms.qt --hidden-import PyQt6 --hidden-import PyQt6.QtCore --hidden-import PyQt6.QtGui --hidden-import PyQt6.QtWidgets --hidden-import PyQt6.QtWebEngineCore --hidden-import PyQt6.QtWebEngineWidgets --hidden-import PyQt6.QtWebChannel --collect-all PyQt6 --collect-all PyQt6_WebEngine"
             icon_flag: ""
             windowed_flag: ""
-          - os: macos-14
+          - os: macos-15
             artifact_name: brain-museum-studio-macos-arm64
             add_data_sep: ":"
             archive: tar.gz

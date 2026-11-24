@@ -438,9 +438,15 @@ class SignalProcessor:
                 rms[ch] = round(float(np.sqrt(np.mean(arr**2))), 1)
         return rms
 
-    def compute_heart_rate_bpm(self) -> Optional[float]:
+    def compute_ppg_metrics(self) -> Dict[str, Optional[float]]:
+        """Estimate Heart Rate (BPM), HRV (RMSSD ms), and Heart Coherence (0-100) from PPG IR."""
+        empty: Dict[str, Optional[float]] = {
+            "heart_rate_bpm": None,
+            "hrv_rmssd_ms": None,
+            "hrv_coherence": None,
+        }
         if len(self._ppg_ir) < int(4.0 * self.ppg_fs):
-            return None
+            return empty
 
         sig = np.asarray(self._ppg_ir, dtype=np.float64)
         win = max(5, int(0.75 * self.ppg_fs))
@@ -450,11 +456,11 @@ class SignalProcessor:
         smooth_k = np.ones(7) / 7.0
         ac = np.convolve(ac, smooth_k, mode="same")[win:-win]
         if len(ac) < 64:
-            return None
+            return empty
 
         std = float(np.std(ac))
         if std < 1e-6:
-            return None
+            return empty
 
         min_dist = int(0.38 * self.ppg_fs)
         thresh = 0.45 * std
@@ -469,15 +475,33 @@ class SignalProcessor:
             i += 1
 
         if len(peaks) < 3:
-            return None
+            return empty
 
         intervals = np.diff(peaks) / self.ppg_fs
         valid = intervals[(intervals >= 0.375) & (intervals <= 1.5)]
         if len(valid) < 2:
-            return None
+            return empty
 
-        bpm = 60.0 / float(np.median(valid))
-        return round(bpm, 1)
+        bpm = round(60.0 / float(np.median(valid)), 1)
+        ibi_ms = valid * 1000.0
+        rmssd: Optional[float] = None
+        coherence: Optional[float] = None
+        if len(ibi_ms) >= 3:
+            diffs = np.diff(ibi_ms)
+            rmssd_val = float(np.sqrt(np.mean(diffs**2)))
+            rmssd = round(min(250.0, rmssd_val), 1)
+            # Smoothness/coherence heuristic: healthy low-jitter rhythmicity maps 0..100
+            cv = float(np.std(ibi_ms) / (np.mean(ibi_ms) + 1e-6))
+            coherence = round(max(0.0, min(100.0, (1.0 - abs(cv - 0.06) * 5.0) * 100.0)), 1)
+
+        return {
+            "heart_rate_bpm": bpm,
+            "hrv_rmssd_ms": rmssd,
+            "hrv_coherence": coherence,
+        }
+
+    def compute_heart_rate_bpm(self) -> Optional[float]:
+        return self.compute_ppg_metrics()["heart_rate_bpm"]
 
     def drain_frame(self) -> Dict[str, Any]:
         eeg_chunks: Dict[str, List[float]] = {}
@@ -516,6 +540,7 @@ class SignalProcessor:
         ]
         self._events.clear()
 
+        ppg_metrics = self.compute_ppg_metrics()
         return {
             "ts": round(time.time(), 3),
             "eeg": eeg_chunks,
@@ -529,7 +554,9 @@ class SignalProcessor:
             "metrics": {
                 "focus": focus_score,
                 "calm": calm_score,
-                "heart_rate_bpm": self.compute_heart_rate_bpm(),
+                "heart_rate_bpm": ppg_metrics["heart_rate_bpm"],
+                "hrv_rmssd_ms": ppg_metrics["hrv_rmssd_ms"],
+                "hrv_coherence": ppg_metrics["hrv_coherence"],
                 "battery_pct": self._battery_pct,
             },
             "quality": self.compute_signal_quality(),

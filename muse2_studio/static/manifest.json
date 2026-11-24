@@ -1,0 +1,16 @@
+{
+  "name": "Brain Museum Studio",
+  "short_name": "Brain Museum",
+  "description": "Real-time Muse 2 / Muse S EEG, HRV, 3D Brain, Neuro Lab, 6 Mind-Controlled Games, Zen Meditation Sanctuary & Personal ML",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08090c",
+  "theme_color": "#0a84ff",
+  "icons": [
+    {
+      "src": "/static/manifest.json",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1111,6 +1111,7 @@
       if (window.BrainMuseum3D) window.BrainMuseum3D.onFrame(frame);
       if (window.BrainMuseumExtras) window.BrainMuseumExtras.onFrame(frame);
       if (window.BrainMuseumPlus) window.BrainMuseumPlus.onFrame(frame);
+      if (window.BrainMuseumInsights) window.BrainMuseumInsights.onFrame(frame);
 
       // Update Neuro Lab telemetry
       if (frame.lab) {

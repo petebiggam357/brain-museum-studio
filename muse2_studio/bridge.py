@@ -119,6 +119,10 @@ class OSCBridge:
             self.send("/muse/metrics/calm", float(metrics["calm"]) / 100.0)
         if metrics.get("heart_rate_bpm") is not None:
             self.send("/muse/ppg/bpm", float(metrics["heart_rate_bpm"]))
+        if metrics.get("hrv_rmssd_ms") is not None:
+            self.send("/muse/ppg/hrv_rmssd", float(metrics["hrv_rmssd_ms"]))
+        if metrics.get("hrv_coherence") is not None:
+            self.send("/muse/ppg/coherence", float(metrics["hrv_coherence"]) / 100.0)
 
         # IMU
         imu = frame.get("imu", {})
@@ -146,4 +150,51 @@ class OSCBridge:
             "host": self.host,
             "port": self.port,
             "packets_sent": self.packets_sent,
+        }
+
+
+class LSLBridge:
+    """Optional Lab Streaming Layer (LSL) 4-channel EEG outlet for researchers (LabRecorder / MNE-Python)."""
+
+    def __init__(self) -> None:
+        self.enabled: bool = False
+        self.samples_pushed: int = 0
+        self._outlet: Any = None
+        try:
+            import pylsl  # type: ignore  # noqa: F401
+            self.available = True
+        except ImportError:
+            self.available = False
+
+    def set_enabled(self, enabled: bool) -> Dict[str, Any]:
+        if enabled and not self.available:
+            self.enabled = False
+            return self.status()
+        if enabled and self._outlet is None:
+            import pylsl  # type: ignore
+
+            info = pylsl.StreamInfo("BrainMuseumEEG", "EEG", 4, 256, "float32", "brain_museum_muse2")
+            self._outlet = pylsl.StreamOutlet(info)
+            self.enabled = True
+        elif not enabled:
+            self.enabled = False
+            self._outlet = None
+        return self.status()
+
+    def push_frame(self, frame: Dict[str, Any]) -> None:
+        if not self.enabled or self._outlet is None:
+            return
+        eeg = frame.get("eeg", {})
+        if not all(eeg.get(ch) for ch in ("TP9", "AF7", "AF8", "TP10")):
+            return
+        n = min(len(eeg["TP9"]), len(eeg["AF7"]), len(eeg["AF8"]), len(eeg["TP10"]))
+        for i in range(n):
+            self._outlet.push_sample([eeg["TP9"][i], eeg["AF7"][i], eeg["AF8"][i], eeg["TP10"][i]])
+            self.samples_pushed += 1
+
+    def status(self) -> Dict[str, Any]:
+        return {
+            "available": self.available,
+            "enabled": self.enabled,
+            "samples_pushed": self.samples_pushed,
         }

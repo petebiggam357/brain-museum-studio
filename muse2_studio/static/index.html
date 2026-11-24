@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Brain Museum Studio</title>
+  <link rel="manifest" href="/static/manifest.json" />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
@@ -83,6 +84,7 @@
         <option value="">No Muse 2 found</option>
       </select>
       <button id="btn-connect-ble" class="btn primary" disabled>Connect</button>
+      <button id="btn-web-ble" class="btn tonal small hidden" title="Pair Muse via Browser Web Bluetooth">Web BLE</button>
       <button id="btn-sim" class="btn tonal accent-text">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         <span>Sim</span>
@@ -172,10 +174,13 @@
             <span class="card-eyebrow">Real-Time DSP</span>
             <h2>Cognitive State</h2>
           </div>
-          <div class="bpm-pill" id="bpm-pill">
+          <div class="controls">
+            <span class="pill-chip mono" id="val-hrv">HRV --</span>
+            <div class="bpm-pill" id="bpm-pill">
             <svg class="ico-sm heart-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <span id="val-bpm">--</span>
             <small>BPM</small>
+          </div>
           </div>
         </div>
 
@@ -864,6 +869,10 @@
             <button id="btn-osc-toggle" class="btn primary">Start OSC Stream</button>
             <span class="muted mono" id="osc-packets">0 packets</span>
           </div>
+          <div class="controls" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <button id="btn-lsl-toggle" class="btn tonal small" disabled>Start LSL Outlet</button>
+            <span class="pill-chip" id="lsl-status-badge">pip install pylsl</span>
+          </div>
         </div>
       </section>
 
@@ -1146,6 +1155,19 @@
           </div>
         </div>
       </section>
+      <!-- Card 4: Shareable Brain Report Card PNG & Multi-Session Trends -->
+      <section class="card span-3">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-eyebrow">Analytics &amp; Sharing</span>
+            <h2>Brain Session Report Card &amp; Stillness Trends</h2>
+          </div>
+          <button id="btn-export-report" class="btn primary small">Download Report PNG</button>
+        </div>
+        <div class="canvas-shell" style="height:124px">
+          <canvas id="insights-trend-canvas"></canvas>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -1180,5 +1202,6 @@
   <script src="/static/brain3d.js"></script>
   <script src="/static/studio_extras.js"></script>
   <script src="/static/studio_plus.js"></script>
+  <script src="/static/insights.js"></script>
 </body>
 </html>

@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .bci import BCIEngine
-from .bridge import OSCBridge
+from .bridge import LSLBridge, OSCBridge
 from .device import MuseDeviceManager
 from .dsp import SignalProcessor
 from .ml import PersonalStateClassifier
@@ -39,6 +39,7 @@ MODELS_DIR = DATA_ROOT / "models"
 dsp = SignalProcessor()
 recorder = SessionRecorder(RECORDINGS_DIR)
 osc_bridge = OSCBridge()
+lsl_bridge = LSLBridge()
 bci_engine = BCIEngine(CONFIG_DIR / "bci_rules.json", osc_bridge=osc_bridge)
 ml_classifier = PersonalStateClassifier(MODELS_DIR)
 profile_manager = ProfileManager(CONFIG_DIR / "profiles.json")
@@ -147,6 +148,10 @@ class AutoConnectRequest(BaseModel):
     auto_connect: bool
 
 
+class LSLToggleRequest(BaseModel):
+    enabled: bool
+
+
 async def _broadcast_loop() -> None:
     """Broadcast ~20 FPS telemetry frames, run BCI rules, ML inference, Neuro Lab, and OSC bridge."""
     while True:
@@ -165,8 +170,9 @@ async def _broadcast_loop() -> None:
         bci_fired = bci_engine.process_events(frame.get("events", []))
         frame["bci_fired"] = bci_fired
 
-        # Broadcast over UDP OSC if enabled
+        # Broadcast over UDP OSC & optional LSL
         osc_bridge.broadcast_frame(frame)
+        lsl_bridge.push_frame(frame)
 
         # Record summary if recording active
         if recorder.active:
@@ -175,6 +181,7 @@ async def _broadcast_loop() -> None:
         frame["device"] = device.status()
         frame["recording"] = recorder.status()
         frame["osc"] = osc_bridge.status()
+        frame["lsl"] = lsl_bridge.status()
         frame["bci"] = {"armed": bci_engine.armed}
         frame["ml"] = ml_classifier.status()
 
@@ -207,7 +214,7 @@ async def lifespan(_app: FastAPI):
         await device.disconnect()
 
 
-app = FastAPI(title="Brain Museum Studio", version="0.0.8", lifespan=lifespan)
+app = FastAPI(title="Brain Museum Studio", version="0.0.9", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -337,6 +344,16 @@ async def api_osc_status() -> Dict[str, Any]:
 @app.post("/api/osc")
 async def api_osc_configure(req: OSCConfigRequest) -> Dict[str, Any]:
     return osc_bridge.configure(host=req.host, port=req.port, enabled=req.enabled)
+
+
+@app.get("/api/lsl")
+async def api_lsl_status() -> Dict[str, Any]:
+    return lsl_bridge.status()
+
+
+@app.post("/api/lsl")
+async def api_lsl_toggle(req: LSLToggleRequest) -> Dict[str, Any]:
+    return lsl_bridge.set_enabled(req.enabled)
 
 
 # --- BCI Controls ---

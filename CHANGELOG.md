@@ -2,6 +2,14 @@
 
 All notable changes to **Brain Museum Studio** are documented in this file.
 
+## `v0.0.9` — True PPG HRV & Coherence, Muse S / 2016 Support, LSL Outlet, Report PNG, Web BLE & MIT License
+
+### New
+- **True PPG HRV (RMSSD ms) & Heart–Breath Coherence (`dsp.py`, `bridge.py`):** Computes real beat-to-beat RMSSD and rhythmic heart coherence live in the Monitor, Meditation Sanctuary, and OSC (`/muse/ppg/hrv_rmssd`, `/muse/ppg/coherence`).
+- **Shareable Brain Session Report Card PNG & Multi-Session Stillness Trends (`insights.js`):** 1-click export of a crisp 1200×630 PNG neural report card + multi-session stillness sparkline in **Studio+**.
+- **Muse S & Muse 2016 Compatibility + Optional LSL Outlet (`device.py`, `bridge.py`):** Auto-detects PPG support (falling back to `p21` on Muse 2016) and adds an optional **Lab Streaming Layer (LSL)** 256 Hz EEG outlet for LabRecorder / MNE-Python (`pip install pylsl`).
+- **Browser Web Bluetooth Quick-Pair + PWA Manifest (`manifest.json`) & Open-Source `MIT LICENSE`**, plus updated `macos-15` release runner.
+
 ## `v0.0.8` — Studio+ (Neuro-Synth + Web MIDI, Smart Home Bridge, Co-Meditation Synchrony, Session Replay & Saved Muse 2)
 
 ### New

@@ -18,6 +18,7 @@ from .protocol import (
     ACCEL_UUID,
     CMD_HALT,
     CMD_KEEP_ALIVE,
+    CMD_PRESET_EEG_ONLY,
     CMD_PRESET_EEG_PPG,
     CMD_RESUME,
     EEG_CHANNELS,
@@ -117,12 +118,14 @@ class MuseDeviceManager:
         for ch_name, uuid in EEG_UUIDS.items():
             await client.start_notify(uuid, self._make_eeg_handler(ch_name))
 
-        # Subscribe to PPG, IMU, Telemetry (best-effort so older firmware still works)
+        # Subscribe to PPG, IMU, Telemetry (best-effort so Muse 2016 without PPG still works cleanly)
+        ppg_supported = False
         for ppg_name, uuid in PPG_UUIDS.items():
             try:
                 await client.start_notify(uuid, self._make_ppg_handler(ppg_name))
+                ppg_supported = True
             except Exception as exc:
-                logger.warning("PPG channel %s unavailable: %s", ppg_name, exc)
+                logger.warning("PPG channel %s unavailable (Muse 2016 or older FW): %s", ppg_name, exc)
 
         for label, uuid, handler in (
             ("ACCEL", ACCEL_UUID, self._handle_accel),
@@ -134,11 +137,12 @@ class MuseDeviceManager:
             except Exception as exc:
                 logger.warning("%s unavailable: %s", label, exc)
 
-        # Configure preset p50 (EEG + PPG + IMU) and start streaming
+        # Configure preset p50 (Muse 2 / Muse S with PPG) or p21 (Muse 2016 EEG-only) and start streaming
+        preset_cmd = CMD_PRESET_EEG_PPG if ppg_supported else CMD_PRESET_EEG_ONLY
         await client.write_gatt_char(MUSE_GATT_ATTR_STREAM_TOGGLE, CMD_HALT, response=False)
         await asyncio.sleep(0.08)
         await client.write_gatt_char(
-            MUSE_GATT_ATTR_STREAM_TOGGLE, CMD_PRESET_EEG_PPG, response=False
+            MUSE_GATT_ATTR_STREAM_TOGGLE, preset_cmd, response=False
         )
         await asyncio.sleep(0.08)
         await client.write_gatt_char(MUSE_GATT_ATTR_STREAM_TOGGLE, CMD_RESUME, response=False)
